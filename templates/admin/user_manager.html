@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	var nav = document.getElementById("navAdmin");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+</script>
+<br/>
+<br/>
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<h1 style="color:#254878;">User Manager</h1>
+			<br/>
+		</div>
+    </div>
+	<div class="row">
+		<div class="col">
+			<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addUser">
+			ADD USER
+			</button>
+		</div>
+	</div>
+	<br/>
+	<div class="row">
+		<div class="col">
+			<table class="table table-striped">
+				<thead class="thead-dark">
+					<tr>
+						<th scope="col">USERNAME</th>
+						<th scope="col"></th>
+						<th scope="col"></th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for u in users %}
+					<tr>
+						<th scope="row">
+							{{ u['username'] }}
+							
+						</th>
+						<td>
+							<a id='edit-user' href="#" onclick="edit_user({{u['id']}})">edit</a>
+						</td>
+						<td><a id='delete-user' href="#" onclick="delete_user({{u['id']}}, '{{u['username']}}')">delete</a></td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div id="addUser" class="modal fade" tabindex="-1" role="dialog">
+<form method="POST" action="{{url_for('admin_user_manager')}}">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title">ADD USER</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+		<div class="form-group row">
+			<label for="inputUsername" class="col-sm-2 col-form-label">USERNAME</label>
+			<div class="col-sm-10">
+				<input type="username" class="form-control" name="inputUsername" id="inputUsername" placeholder="username">
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="inputPassword" class="col-sm-2 col-form-label">PASSWORD</label>
+			<div class="col-sm-10">
+				<input type="password" class="form-control" name="inputPassword" id="inputPassword" placeholder="Password">
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="inputInitals" class="col-sm-2 col-form-label">INITIALS</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" name="inputInitals" id="inputInitals" placeholder="Initials">
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="selRole" class="col-sm-2 col-form-label">ROLE</label>
+			<div class="col-sm-10">
+				<select id="selRole" name="selRole" class="form-control">
+					<option value="1">Administrator</option>
+					<option value="2">User</option>
+				</select>
+			</div>
+		</div>
+		<div class="form-group row">
+			<div class="col-sm-2">ENABLED</div>
+				<div class="col-sm-10">
+					<div class="form-check">
+						<input class="form-check-input" type="checkbox" id="enabled" name="enabled">		
+						<input type="hidden" id="op-code" name="op-code"/>
+						<input type="hidden" id="user-id" name="user-id"/>
+					</div>
+				</div>
+			</div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">SAVE</button>
+        <button type="button" class="btn btn-light" data-dismiss="modal">CANCEL</button>
+      </div>
+    </div>
+  </div>
+ </form>
+</div>
+<!-- UTIL Modal -->
+<div class="modal fade" id="delUser" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <form method="POST" action="{{url_for('admin_user_manager')}}">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">DELETE USER</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+		<div class="form-group row">
+			<div class="col-sm-10">
+			Are you sure want to delete &nbsp;<span id="delUserName" style="font-weight: bold;"></span>
+			</div>
+      </div>
+      <div class="modal-footer">
+		<input type='hidden' id='op-code' name="op-code"/>
+		<input type='hidden' id='del_user_id' name="del_user_id"/>
+        <button type="submit" class="btn btn-danger">DELETE</button>
+        <button type="button" class="btn btn-light" data-dismiss="modal">CANCEL</button>
+      </div>
+    </div>
+  </div>
+ </form>
+</div>
+<script type="text/javascript">
+	function edit_user(user) {
+		$.get("/admin/user_manager/user/"+user, function(data) {
+			$('.modal-title').html('UPDATE USER');
+			$('#addUser').modal('show');
+			$('#user-id').val(user);
+			$('#inputUsername').val(data['username']);
+			$('#inputInitals').val(data['initials']);
+			$('#selRole').val(data['role']);
+			$('#enabled').prop('checked', data['enabled']);
+			$('#op-code').val('update');
+		});
+	}
+	
+	function delete_user(userid, username) {		
+		$('#delUser').modal('show');
+		$('#delUser #op-code').val('delete');
+		$('#delUser #del_user_id').val(userid);
+		$('#delUser #delUserName').html(username);
+	}
+</script>
+{% endblock %}

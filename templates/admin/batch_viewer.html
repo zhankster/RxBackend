@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block body %}
+<script src="https://cdn.jsdelivr.net/npm/gijgo@1.9.10/js/gijgo.min.js" type="text/javascript"></script>
+<link href="https://cdn.jsdelivr.net/npm/gijgo@1.9.10/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript">
+	var nav = document.getElementById("navAdmin");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+</script>
+<style>
+.loader {
+  display: tbody;
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid #3498db;
+  width: 120px;
+  height: 120px;
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  animation: spin 2s linear infinite;
+  
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+table {
+  width: 100%;
+}
+</style>
+<br/>
+<br/>
+<!-- LOADING MODAL -->
+<div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document" style="width: 150px">
+    <div class="modal-content">      	
+     <div class="modal-body">
+        <div class="loader" id="loading"> </div>     
+	</div>
+  </div>
+</div>
+</div>
+
+<!-- DATE PICKER -->
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<h1 style="color:#254878;">Batch Viewer:</h1>
+			<br/>
+		</div>
+    </div>
+	<div class="row">
+		<div class="col">			
+			<input id="datepicker" width="276" />
+			<script>
+				$('#datepicker').datepicker({
+					uiLibrary: 'bootstrap4'
+				});
+				
+				$('#datepicker').on('change', function(e) {
+					if ($('#datepicker').val()) {						
+						$('#loadingModal').modal('toggle');
+						$('#batchTable').html("");						
+						$.get("/admin/batches/"+$('#datepicker').val(), function(data) {	
+							
+							$.each(data, function(k,v) {
+								$('#batchTable').html($('#batchTable').html() + '<tr><td>' + v['del_bat_id'] + '</td><td style="background-color:' + v['color'] + ';">' + v['facility'] + '</td><td>' +
+									v['total'] + '</td><td>' + v['p'] + '</td><td>' + v['m'] + '</td><td>' + v['s'] + '</td><td>' + v['u'] + '</td><td>' +
+									v['o'] + '</td><td>' + v['tech'] + '</td><td>' + v['ship'] + '</td><td>' + v['new'] + '</td></tr>');
+							});
+							$('#loadingModal').modal('toggle');
+						})
+						.fail(function() {
+							$('#batchTable').html('<tr><td colspan="11">There was an error fetching batches for ' + $('#datepicker').val() + '</td></tr>');
+						});
+					}
+				});
+							
+			</script>			
+		</div>
+	</div>
+</div>
+<!-- DETAIL VIEW -->
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<br/>
+			<table class="table table-striped">
+				<thead class="thead-dark">
+					<tr>
+						<th scope="col">BATCH</th>
+						<th scope="col">FACILITY</th>
+						<th scope="col"></th>
+						<th scope="col">P</th>
+						<th scope="col">M</th>
+						<th scope="col">S</th>
+						<th scope="col">U</th>
+						<th scope="col">OTHER</th>
+						<th scope="col">TECH</th>
+						<th scope="col">SHIP</th>
+						<th scope="col">NEW</th>
+					</tr>
+				</thead>
+				<tbody id="batchTable"></tbody>
+			</table>
+		</div>
+    </div>
+</div>
+{% endblock %}
+

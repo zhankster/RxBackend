@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block body %}
+<script src="https://cdn.jsdelivr.net/npm/gijgo@1.9.10/js/gijgo.min.js" type="text/javascript"></script>
+<link href="https://cdn.jsdelivr.net/npm/gijgo@1.9.10/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript">
+	var nav = document.getElementById("navAdmin");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+</script>
+<br/>
+<br/>
+<div class="container">
+  <div class="row">
+    <div class="col">
+    	<h1 style="color:#254878;">Exception: {{ batch_id if batch_id else "" }}</h1>
+    	<br/>
+    </div>
+  </div>
+  
+  <!-- BATCH INPUT & METADATA -->
+  <div class="row">
+	<div class="col">
+		<table class="table">
+			<thead class="thead-dark">
+				<tr>
+					<th scope="col">BATCH</th>
+					<th scope="col">FACILITY</th>
+					<th scope="col">SHIP</th>
+					<th scope="col">TECH</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row"><form name="batch-form" id="batch-form" action="{{ url_for('admin_exception_manager') }}" method="GET" autocomplete="off"><input type="textbox" autofocus="autofocus" name="batch-id" id="batch-id"></form></th>
+					<td>{{ batch['facility'] }}</td>
+					<td>{{ batch['ship'] }}</td>
+					<td>{{ batch['tech'] }}</td>
+				</tr>
+			</tbody>
+		</table>				
+	</div>
+  </div>
+  
+  {% if batch == None %}
+  <div class="row">
+	<div class="col">
+		<table class="table">
+			<thead class="thead-dark">
+				<tr>
+					<th scope="col">FACILITY</th>
+					<th scope="col">BATCH ID</th>
+					<th scope="col">EXCEPTION COUNT</th>					
+				</tr>
+			</thead>
+			<tbody id="exceptionTable">
+				<script type="text/javascript">
+					$.get("/admin/exceptions", function(data) {
+						$('#exceptionTable').html("")
+						$.each(data, function(k,v) {
+							$('#exceptionTable').html($('#exceptionTable').html() + '<tr><td scope="row">' + v['fac_dcode'] + '</td><td>' +
+								v['del_bat_id'] + '</td><td>' + v['exception_count'] + '</td></tr>');
+						});
+					})
+					.fail(function() {
+						$('#exceptionTable').html('<tr><td colspan="3">There was an error loading the exception dataset.</td></tr>');
+					});
+					</script>
+			</tbody>
+		</table
+	</div>
+  </div>
+  {% else %}
+  <!-- PROCESSING ACCORDION -->
+  <form name="processBatch" id="processBatch" action="{{url_for('admin_exception_manager')}}" method="POST">
+  <div class="row">
+  	<div class="col">
+  		<div class="accordion" id="accordion">
+		<input type="hidden" value="{{batch['facility']}}" id="facility" name="facility"/>
+		<input type="hidden" value="{{batch['ship']}}" id="ship" name="ship"/>
+		<input type="hidden" value="{{batch['tech']}}" id="tech" name="tech"/>
+		<input type="hidden" value="{{batch_id}}" id="batch_id" name="batch_id"/>
+		<input type="hidden" id="batch_complete_code" name="batch_complete_code"/>
+		{% for kop, rx in batch['KOP'].items() %}
+		<div class="card">
+			<div class="card-header" id="headingOne">
+				<h4 class="mb-0">
+					<button class="btn btn-link" style="text-decoration: none !important;font-weight: bold; color:#254878" type="button" data-toggle="collapse" data-target="#collapse{{kop}}" aria-expanded="true" aria-controls="collapseOne">
+					{{ kop }} &nbsp;&nbsp; TOTAL PATIENTS: {{rx['patTotal']}} &nbsp; RX COUNT: {{rx['rxTotal']}}				
+					</button>					
+				</h4>
+				
+			</div>
+			<div id="collapse{{kop}}" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+				<div class="card-body">
+					<table class="table table-striped">
+						<thead class="thead">
+							<tr>
+							  <th scope="col">NAME</th>
+							  <th scope="col">MEDICATION</th>
+							  <th scope="col">QTY</th>
+							  <th scope="col">EXCEPTION</th>
+							  <th scope="col"></th>
+							  <th scope="col">RESOLVE</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for k,v in rx.items() %}
+							{% if k != "rxTotal" and k != "patTotal" %}
+							<tr>
+								<th scope="row">
+									{{ v['name'] }}
+									<input type="hidden" value="{{v['name']}}" id="{{ v['id'] }}_name" name="{{ v['id'] }}_name"/>
+								</th>
+								<td>
+									{{v['drg_name']}} - {{v['drg_strength']}}
+									<input type="hidden" value="{{v['drg_name']}}" id="{{ v['id'] }}_drgname" name="{{ v['id'] }}_drgname"/>
+									<input type="hidden" value="{{v['drg_strength']}}" id="{{ v['id'] }}_drgstrength" name="{{ v['id'] }}_drgstrength"/>
+								</td>
+								<td>
+									{{ v['qty'] }}
+									<input type="hidden" value="{{v['qty']}}" id="{{ v['id'] }}_qty" name="{{ v['id'] }}_qty"/>
+								</td>
+								<td>
+									{{ v['exception_desc']}}
+									
+								</td>
+								<td><!--
+									<input name="{{ v['id'] }}_vfd" id="{{ v['id'] }}_vfd"/>
+									<script>
+										$('#'+{{ v['id'] }}+'_vfd').datepicker({
+											uiLibrary: 'bootstrap4'
+										});																					
+									</script>	-->
+								</td>
+								<td>
+									<input type="checkbox" id="{{ v['id'] }}_present" id="{{ v['id'] }}_present"/>	
+									<input type="hidden" id="{{v['id']}}_exception" name="{{v['id']}}_exception" value="{{ v['exception_desc'] }}"/>
+								</td>
+							</tr>
+							{% endif %}
+							{% endfor %}
+							<input type="hidden" name="batch_exception_count" value="{{ rx['rxTotal'] }}"/>
+						</tbody>
+					</table>					
+				</div>
+			</div>			
+		</div>		
+    	<!-- </div> -->	
+	 
+	   {% endfor %}
+	   </div>
+	   <div class="row" align="right">
+		<div class="col">
+			<br/>
+			<br/>
+			<button id="btnFormSubmit" type="button" data-toggle="modal" data-target="#exceptionsModal" class="btn btn-dark">RESOLVE BATCH</button>
+		</div>
+	</div>
+	</form>
+</div>
+<!-- EXCEPTION MODAL -->
+<div class="modal" id="exceptionsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document" style="width: 800px;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">RESOLVE BATCH EXCEPTIONS</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+       	<form>
+          <div class="form-group">
+			<!-- <span style="font-weight:bold;">Exception Count: &nbsp;</span><span id="exceptionCount"></span><br/><br/> -->
+			<table class="table table-striped">
+				<thead class="thead-dark">
+					<tr>
+						<th scope="col">PATIENT</th>
+						<th scope="col">DRUG NAME</th>
+						<th scope="col">DOSAGE</th>
+						<th scope="col">VIRT FIL DATE</th>
+					</tr>
+				</thead>
+				<tbody id="exceptionBody">
+				</tbody>
+			</table>			
+          </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">CANCEL</button>
+        <button form="processBatch" name="submit" id="submit" type="submit" class="btn btn-primary">COMPLETE</button>
+      </div>
+    </div>
+	</form>
+  </div>
+</div>
+<script id="exception-template" type="text/x-custom-template">
+	<option value="0" ></option>
+	{% for r in exception_codes %}
+	<option value="{{r['id']}}">({{r['id']}})-{{r['desc']}}</option>
+	{% endfor %}
+</script>
+<script type="text/javascript">
+
+	$('#btnFormSubmit').on('click', function(event) {		
+		var exceptions = $("input:checkbox:checked");
+		var deletes = $("input:checkbox:not(:checked)");
+		var tbody = "";
+		var lookup = $('#exception-template').html();
+		var d = Date();
+		
+		for (i=0; i<deletes.length; i++) {
+			var id = deletes[i].id.split("_")[0];
+			$('input[name='+id+'_exception'+']').prop('disabled', true);
+		}
+		
+		for (i=0; i<exceptions.length; i++) {	
+			var id = exceptions[i].id.split("_")[0];
+			
+			tbody += "<tr><th scope='row'>" + $('#'+id+"_name").val() + "</th><td>" + $('#'+id+'_drgname').val() + 
+				"</td><td>" + $('#'+id+'_drgstrength').val() + "</td><td>" + Date(Date.now()) + "</td></tr>";			
+		}
+		$('#batch_complete_code').val(1);
+		document.getElementById('exceptionBody').innerHTML = tbody;
+		event.preventDefault();
+	});
+	
+	function exceptionChange(ev) {
+		var id = ev.id.split("_")[0];
+		//console.log(ev);
+		$('#'+id+"_exception").val(ev.value);
+	}
+	
+
+</script>
+
+<div 	
+{% endif %}
+{% endblock %}

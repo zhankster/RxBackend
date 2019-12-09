@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	var nav = document.getElementById("navAdmin");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+</script>
+<br/>
+<br/>
+<div class="container">
+  <div class="row">
+    <div class="col">
+    	<h1 style="color:#254878;">Exception Code Manager:</h1>
+    	<br/>
+    </div>
+  </div>
+  <div class="row">
+		<div class="col">
+			<a href="#" type="button" class="btn btn-primary" id="btnAddCode" onClick="add_code()">
+			ADD EXCEPTION CODE
+			</a>
+		</div>
+	</div>
+	<br/>
+	<div class="row">
+		<div class="col">
+			<table class="table table-striped">
+				<thead class="thead-dark">
+					<tr>
+						<th scope="col">ID</th>
+						<th scope="col">DESC</th>
+						<th scope="col"></th>
+						<th scope="col"></th>
+					</tr>
+				</thead>
+				<tbody class="exceptionCodeTable" id="exceptionCodeTable"></tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<!-- EXCEPTION CODE MODAL -->
+<div id="addCode" class="modal fade" tabindex="-1" role="dialog">
+<form method="POST" action="{{url_for('admin_exception_code_manager')}}">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="modal-title">ADD EXCEPTION CODE</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+		<div class="form-group row">
+			<label for="inputCode" class="col-sm-3 col-form-label">CODE</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" name="inputCode" id="inputCode" placeholder="code" required="true">
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="inputDescription" class="col-sm-3 col-form-label">DESC</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" name="inputDescription" id="inputDescription" placeholder="description" required="true">
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="virt_fil_date_offset" class="col-sm-3 col-form-label">FILL DATE</label>
+			<div class="col-sm-10">
+			<div class="btn-group btn-group-toggle" data-toggle="buttons" id="btnVirtFilDate" name="btnVirtFilDate">
+				<label id="lblOption1" class="btn btn-light">
+					<input type="radio" name="virt_fil_date_offset" id="option1" autocomplete="off" value="NULL">TBD
+				</label>
+				<label id="lblOption2" class="btn btn-light">
+					<input type="radio" name="virt_fil_date_offset" id="option2" autocomplete="off" value="0"> TODAY
+				</label>
+				<label id="lblOption3" class="btn btn-light">
+					<input type="radio" name="virt_fil_date_offset" id="option3" autocomplete="off" value="1"> TOMORROW
+				</label>
+			</div>	
+			</div>
+			<script type="text/javascript">
+				
+			</script>
+		</div>
+      </div>
+      <div class="modal-footer">
+		<input type='hidden' id='op-code' name="op-code"/>
+        <button type="submit" class="btn btn-primary">SAVE</button>
+        <button type="button" class="btn btn-light" data-dismiss="modal">CANCEL</button>
+      </div>
+    </div>
+  </div>
+ </form>
+</div>
+<!-- UTIL MODAL -->
+<div class="modal fade" id="delCode" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <form method="POST" action="{{url_for('admin_exception_code_manager')}}" id="delForm">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">DELETE EXCEPTION CODE</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+		<div class="form-group row">
+			<div class="col-sm-10">
+			Are you sure want to delete <br/><span id="delCodeErrorText" style="font-weight: bold;"></span>
+			</div>
+      </div>
+      <div class="modal-footer">
+		<input type='hidden' id="op-code" name="op-code" value="delete"/>
+		<input type='hidden' id='del_code_id' name="del_code_id"/>
+        <button type="submit" class="btn btn-danger">DELETE</button>
+        <button type="button" class="btn btn-light" data-dismiss="modal">CANCEL</button>
+      </div>
+    </div>
+  </div>
+ </form>
+</div>
+<script type="text/javascript">
+	$.get("/admin/exception_codes", function (data) {
+		$('#exceptionCodeTable').html("");
+		$.each(data, function(k,v) {
+			$('#exceptionCodeTable').html($('#exceptionCodeTable').html() + 
+				'<tr><td scope="col">' + v["id"] + '</td><td>' + v["desc"] + '</td><td><a id="edit-code" href="#" onClick=\'edit_code(' + v['id'] + 
+				   ',"' + v["desc"] + '")\'>edit</a><input type="hidden" id="' + v['id']+"_" + "VFDO" + '" value="' + v['virt_fil_date_offset'] +
+				   '" value=""></td><td><a href="#" id="delete-code" onClick=\'delete_code(' + v['id'] + ', "' + v['desc'] + '")\'>delete</a></td></tr>');
+		});
+	})
+	.fail(function() {
+		$('#exceptionCodeTable').html('<tr><td colspan="4">There was an error loading the dataset</td></tr>');
+	});	
+	function add_code() {
+		$('#modal-title').html("ADD EXCEPTION CODE");
+		$('#op-code').val("create");
+		$('#inputCode').val("");
+		$('#inputDescription').val("");
+		$('#addCode').modal('show');
+	}
+	function edit_code(code, desc) {
+		$('#modal-title').html("EDIT EXCEPTION CODE");
+		$('#op-code').val("update");
+		$('#inputCode').val(code);
+		$('#inputDescription').val(desc);
+		$('#addCode').modal('show');
+		//$('input:radio[name=virt_fil_date_offset][value='+$('#'+code+"_VFDO").val()+']').prop('checked', true);
+	}	
+	function delete_code(code, desc) {		
+		$('#del_code_id').val(code);
+		$('#delCodeErrorText').html(code + ': ' + desc);
+		$('#delCode').modal('show');		
+	}
+	
+</script>
+{% endblock %}

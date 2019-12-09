@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	var nav = document.getElementById("navPreProcessing");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+</script>
+<br/>
+<br/>
+<div class="container">
+  <div class="row">
+    <div class="col">
+    	<h1 style="color:#254878;">RX Processing: {{ batch_id if batch_id and not errors else "" }}</h1>
+		<input type="hidden" value="{{ errors }}" id="error_tuple"/>
+    	<br/>
+    </div>
+  </div>
+  
+  <!-- BATCH INPUT & METADATA -->
+  <div class="row">
+	<div class="col">
+		<table class="table">
+			<thead class="thead-dark">
+				<tr>
+					<th scope="col">BATCH</th>
+					<th scope="col">FACILITY</th>
+					<th scope="col">SHIP</th>
+					<th scope="col">TECH</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row"><form name="batch-form" id="batch-form" action="{{ url_for('pre_processing') }}" method="GET" autocomplete="off"><input type="textbox" autofocus="autofocus" name="batch-id" id="batch-id" required="true" {% if batch_id != None and not errors %}disabled=true{% endif %}></form></th>
+					<td style="background-color:{{batch['color']}}">{{ batch['facility'] }}</td>
+					<td>{{ batch['ship'] }}</td>
+					<td>{{ batch['tech'] }}</td>
+				</tr>
+			</tbody>
+		</table>				
+	</div>
+  </div>
+  
+  {% if batch != None and errors == None %}
+  
+  <!-- PROCESSING ACCORDION -->
+  <form name="processBatch" id="processBatch" action="{{url_for('pre_processing')}}" method="POST">
+  <div class="row">
+  	<div class="col">
+  		<div class="accordion" id="accordion">
+		<input type="hidden" value="{{batch['facility']}}" id="facility" name="facility"/>
+		<input type="hidden" value="{{batch['ship']}}" id="ship" name="ship"/>
+		<input type="hidden" value="{{batch['tech']}}" id="tech" name="tech"/>
+		<input type="hidden" value="{{batch_id}}" id="batch_id" name="batch_id"/>
+		<input type="hidden" id="batch_complete_code" name="batch_complete_code"/>
+		<input type="hidden" value="{{ batch['fil_date']}}" id="fil_date" name="fil_date"/>
+		{% for kop, rx in batch['KOP'].items() %}
+		<div class="card">
+			<div class="card-header" id="headingOne">
+				<h4 class="mb-0">
+					<button class="btn btn-link" style="text-decoration: none !important;font-weight: bold; color:#254878" type="button" data-toggle="collapse" data-target="#collapse_{{kop}}" aria-expanded="true" aria-controls="collapseOne">
+					{{ kop }} &nbsp;&nbsp; TOTAL PATIENTS: {{rx['patTotal']}} &nbsp; RX COUNT: {{rx['rxTotal']}} 	
+					</button>
+					<span  style="position:relative;float:right;vertical-align:middle;"></span>						
+				</h4>
+				
+			</div>
+			<div id="collapse_{{kop}}" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+				<div class="card-body">
+					<table class="table table-striped">
+						<thead class="thead">
+							<tr>
+							  <th scope="col">NAME</th>
+							  <th scope="col">MEDICATION</th>
+							  <th scope="col">QTY</th>							  
+							</tr>
+						</thead>
+						<tbody>
+							{% for k,v in rx.items() %}
+							{% if k != "rxTotal" and k != "patTotal" %}
+							<tr>
+								<th scope="row">
+									{{ v['name'] }}
+									<input type="hidden" value="{{v['name']}}" id="{{ v['id'] }}_name" name="{{ v['id'] }}_name"/>
+								</th>
+								<td>
+									{{v['drg_name']}} - {{v['drg_strength']}}
+									<input type="hidden" value="{{v['drg_name']}}" id="{{ v['id'] }}_drgname" name="{{ v['id'] }}_drgname"/>
+									<input type="hidden" value="{{v['drg_strength']}}" id="{{ v['id'] }}_drgstrength" name="{{ v['id'] }}_drgstrength"/>
+								</td>
+								<td>
+									{{ v['qty'] }}
+									<input type="hidden" value="{{ v['qty'] }}" id="{{ v['id'] }}_qty" name="{{ v['id'] }}_qty"/>
+									<input type="hidden" value="{{ v['exception'] }}" id="exception" name="exception"/>								
+								</td>
+								
+							</tr>
+							{% endif %}
+							{% endfor %}							
+						</tbody>
+					</table>					
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+    	</div> 	
+		<div class="row" align="right">
+			<div class="col">
+				<br/>
+				<br/>
+				<button id="btnFormSubmit" type="submit" class="btn btn-dark">COMPLETE BATCH</button>
+			</div>
+	   </div>	   
+	</div>	
+</div>
+</form>
+<script type="text/javascript">
+
+</script>	
+{% endif %}
+<!-- UTIL MODAL -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-danger">
+        <h5 class="modal-title">ERROR:</h5>
+        <button type="button" class="close" id="btnErrorCancel" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+		<div class="form-group row">
+			<div class="col-sm-10">
+			Error: <br/><span id="errorText" style="font-weight: bold;"></span>
+			</div>
+      </div>
+      <div class="modal-footer">		
+        <a href="/pre_processing" class="btn btn-light" >CANCEL</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+	$('#btnErrorCancel').on('click', function(e) {window.location.href = "/pre_processing"; });
+	
+	if ($('#error_tuple').val() != "None") {
+		switch($('#error_tuple').val()) {
+			case '404':
+				$('#errorText').html("404: Not Found.<br/>  This batch has already been processed or was not found.<br/>  Please verify the BATCH-ID and try again.");
+				break;
+			default:
+				$('#errorText').html("500: Unknown Server Error.");
+		}
+		$('#errorModal').modal('show');		
+	}
+	$('#errorModal').on('hidden.bs.modal', function(e) {window.location.href = "/pre_processing";});
+</script>
+{% endblock %}

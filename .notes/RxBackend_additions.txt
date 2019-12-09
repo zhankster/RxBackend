@@ -1,0 +1,25 @@
+````2019-12-06
+#Added image for favicon in "base.html"
+<link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+
+#Created template file "iou.html" based on processing.html
+
+#In "app.py" created route below
+@app.route("/iou", methods=["GET", "POST"])
+@login_required
+def iou():
+    error = ""
+    batch_id = ""
+    objects_list = ""
+    batch_codes = ""
+    exception_codes = ""
+    return render_template('iou.html',errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes)
+	
+#In the [role] table added the script below
+INSERT INTO dbo.[role] VALUES('PharmTech')
+
+#### Found issues with procedure [dbo].[_get_user_by_username] on Line 22, made change below
+			on a.ID=b.user_id --Original
+			on a.ID=b.id -- New
+select u.* from users u inner join USER_ROLE r on u.id = r.ID
+where r.ROLE_ID = 1

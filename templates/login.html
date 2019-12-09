@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block body %}
+<br/>
+<br/>
+<div class="container">
+  <div class="row">
+    <div class="col">
+    	<h1 style="color:#254878;">Login</h1>
+    	<br/>
+    </div>
+  </div>
+  {% if errors %}
+	<div class="alert alert-danger" role="alert">
+		{{errors}}
+	</div>
+  
+  {% endif %}
+	<div class="row">
+		<div class="col-4">
+			<form method="post" action="{{ url_for('login') }}">
+  				<div class="form-group">
+    				<label for="username" style="font-weight:bold;	color:#254878;">Username</label>
+    				<input type="text" class="form-control" id="username" name="username" placeholder="username">
+  				</div>
+  				<div class="form-group">
+    				<label for="password" style="font-weight:bold;color:#254878;">Password</label>
+    				<input type="password" class="form-control" id="password" name="password" placeholder="password">
+  				</div>
+  				<button type="submit" class="btn btn-dark">Submit</button>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}

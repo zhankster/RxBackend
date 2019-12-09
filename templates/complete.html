@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	// Set ActiveLink
+	var nav = document.getElementById("navComplete");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+	
+	// Refresh Handler
+	function Poll( t ) {
+		setTimeout("location.reload(true);", t);
+    }
+	
+	$(document).ready(function(){
+		Poll(60000);
+	});
+</script>
+<br/>
+<br/>
+<div class="container">
+  <div class="row">
+    <div class="col">
+    	<h1 style="color:#254878;">Complete:</h1>
+    </div>
+  </div>
+  <div class="row">
+  	<div class="col">
+  		<br/>
+  		<div class="btn-group" role="group" aria-label="Basic example">
+			<button id="filterBtnAll" onClick="location.href = '{{url_for('complete')}}';" type="submit" class="btn {% if filter==None %} btn-success {% else %}btn-light{% endif %} }}">ALL</button>
+			<button id="filterBtnAir" onClick="location.href = '{{url_for('complete', filter=['N'])}}';" type="submit" class="btn {% if filter=='N' %} btn-success {% else %}btn-light{% endif %} }}">AIR</button>
+			<button id="filterBtnGround" onClick="location.href = '{{url_for('complete', filter=['G'])}}';" type="submit" class="btn {% if filter=='G' %} btn-success {% else %}btn-light{% endif %} }}">GROUND</button>
+		</div>
+	</div>
+  </div>
+  <div class="row">
+  	<div class="col">
+  		<br/>
+  		<table class="table table-striped">
+  			<thead class="thead-dark">
+    			<tr>
+     	 			<th scope="col">BATCH</th>
+      				<th scope="col">FACILITY</th>
+      				<th scope="col"></th>
+      				<th scope="col">P</th>
+      				<th scope="col">M</th>
+      				<th scope="col">S</th>
+      				<th scope="col">U</th>
+      				<th scope="col">OTHER</th>
+      				<th scope="col">TECH</th>
+       				<th scope="col">SHIP</th>
+					<th scope="col">NEW</th>
+					<th scope="col">EXCEPTION</th>
+    			</tr>
+  			</thead>
+  			<tbody>
+				{% for b in batches %}
+				<tr style="text-align:center">
+     		 		<th scope="row">{{ b['del_bat_id'] }}</th>
+      				<td style="background-color:{{b['color']}}">{{ b['facility'] }}</td>
+      				<td>{{ b['total'] }}</td>
+      				<td>{{ b['p'] }}</td>
+      				<td>{{ b['m'] }}</td>
+      				<td>{{ b['s'] }}</td>
+      				<td>{{ b['u'] }}</td>
+      				<td>{{ b['o'] }}</td>
+      				<td>{{ b['tech'] }}</td>
+					<td>{{ b['ship'] }}</td>
+      				<td style="font-weight:bold">{% if b['new'] > 0 %}Y{% else %}{% endif %}</td>
+					<td style="font-weight:bold">{{ b['exception']}}</td>
+    			</tr>
+				{% endfor %}			
+  			</tbody>
+		</table>
+  	</div>
+  </div>
+</div> 
+{% endblock %}

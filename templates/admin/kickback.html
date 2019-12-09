@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	var nav = document.getElementById("navAdmin");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+</script>
+<br/>
+<br/>
+<div class="container">
+  <div class="row">
+    <div class="col">
+    	<h1 style="color:#254878;">Kickback:</h1>
+    	<br/>
+    </div>
+  </div>
+  <!-- BATCH INPUT & METADATA -->
+  <div class="row">
+	<div class="col">
+		<table class="table">
+			<thead class="thead-dark">
+				<tr>
+					<th scope="col">FACILITY</th>
+					
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row"><form name="kickback-form" id="kickback-form" action="{{ url_for('admin_kickback') }}" method="POST" autocomplete="off"><input type="textbox" autofocus="autofocus" name="facility-id" id="facility-id" required="true"></form></th>					
+				</tr>
+			</tbody>
+		</table>				
+	</div>
+  </div>
+</div>
+{% endblock %}

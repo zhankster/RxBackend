@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	var nav = document.getElementById("navProcessing");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+</script>
+<br/>
+<br/>
+<div class="container">
+  <div class="row">
+    <div class="col">
+    	<h1 style="color:#254878;">IOU: {{ batch_id if batch_id and not errors else "" }}</h1>
+		<input type="hidden" value="{{ errors }}" id="error_tuple"/>
+    	<br/>
+    </div>
+  </div>
+  
+  <!-- BATCH INPUT & METADATA -->
+  <div class="row">
+	<div class="col">
+		<table class="table">
+			<thead class="thead-dark">
+				<tr>
+					<th scope="col">BATCH</th>
+					<th scope="col">FACILITY</th>
+					<th scope="col">SHIP</th>
+					<th scope="col">TECH</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row">
+					<form name="batch-form" id="batch-form" 
+						action="{{ url_for('processing') }}" method="GET" autocomplete="off">
+						<input type="text" autofocus="autofocus" name="batch-id" id="batch-id" 
+						required="true" {% if batch_id != None and not errors %}disabled=true{% endif %}>
+					</form></th>
+					<td style="background-color:{{batch['color']}}">{{ batch['facility'] }}</td>
+					<td>{{ batch['ship'] }}</td>
+					<td>{{ batch['tech'] }}</td>
+				</tr>
+			</tbody>
+		</table>				
+	</div>
+  </div>
+  
+  {% if batch != None and errors == None %}
+  
+  <!-- PROCESSING ACCORDION -->
+  <form name="processBatch" id="processBatch" action="{{url_for('processing')}}" method="POST">
+  <div class="row">
+  	<div class="col">
+  		<div class="accordion" id="accordion">
+		<input type="hidden" value="{{batch['facility']}}" id="facility" name="facility"/>
+		<input type="hidden" value="{{batch['ship']}}" id="ship" name="ship"/>
+		<input type="hidden" value="{{batch['tech']}}" id="tech" name="tech"/>
+		<input type="hidden" value="{{batch_id}}" id="batch_id" name="batch_id"/>
+		<input type="hidden" id="batch_complete_code" name="batch_complete_code"/>
+		{% for kop, rx in batch['KOP'].items() %}
+		<div class="card">
+			<div class="card-header" id="headingOne">
+				<h4 class="mb-0">
+					<button class="btn btn-link" style="text-decoration: none !important;font-weight: bold; color:#254878" type="button" data-toggle="collapse" data-target="#collapse_{{kop}}" aria-expanded="true" aria-controls="collapseOne">
+					{{ kop }} &nbsp;&nbsp; TOTAL PATIENTS: {{rx['patTotal']}} &nbsp; RX COUNT: {{rx['rxTotal']}} 	
+					</button>
+					<span  style="position:relative;float:right;vertical-align:middle;"><input type="checkbox" id="{{kop}}_toggle" name="{{kop}}_toggle" checked="true" onclick="selectAll('{{kop}}');"></span>						
+				</h4>
+				
+			</div>
+			<div id="collapse_{{kop}}" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+				<div class="card-body">
+					<table class="table table-striped">
+						<thead class="thead">
+							<tr>
+							  <th scope="col">NAME</th>
+							  <th scope="col">MEDICATION</th>
+							  <th scope="col">QTY</th>
+							  <th scope="col">PRESENT</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for k,v in rx.items() %}
+							{% if k != "rxTotal" and k != "patTotal" %}
+							<tr>
+								<th scope="row">
+									{{ v['name'] }}
+									<input type="hidden" value="{{v['name']}}" id="{{ v['id'] }}_name" name="{{ v['id'] }}_name"/>
+								</th>
+								<td>
+									{{v['drg_name']}} - {{v['drg_strength']}}
+									<input type="hidden" value="{{v['drg_name']}}" id="{{ v['id'] }}_drgname" name="{{ v['id'] }}_drgname"/>
+									<input type="hidden" value="{{v['drg_strength']}}" id="{{ v['id'] }}_drgstrength" name="{{ v['id'] }}_drgstrength"/>
+								</td>
+								<td>
+									{{ v['qty'] }}
+									<input type="hidden" value="{{v['qty']}}" id="{{ v['id'] }}_qty" name="{{ v['id'] }}_qty"/>
+								</td>
+								<td>
+									<input class="{{kop}}_check" type="checkbox" checked="true" id="{{ v['id'] }}_present" id="{{ v['id'] }}_present"/>
+									<input type="hidden" id="{{v['id']}}_exception" name="{{v['id']}}_exception"/>
+									<input type="hidden" id="exception" name="exception" value="{{ v['exception'] }}"/>
+								</td>
+							</tr>
+							{% endif %}
+							{% endfor %}							
+						</tbody>
+					</table>					
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+    	</div> 	
+		<div class="row" align="right">
+			<div class="col">
+				<br/>
+				<br/>
+				<button id="btnFormSubmit" type="button" data-toggle="modal" data-target="#exceptionsModal" class="btn btn-dark">COMPLETE BATCH</button>
+			</div>
+	   </div>	   
+	</div>	
+	<!--Table for all facility items HDA-2019-09-24 -->
+	 <div class="row">
+		<div class="col">
+		  		<br/>
+  		<table class="table">
+  			<thead class="thead-dark">
+    			<tr>
+     	 			<th scope="col">BATCH</th>
+      				<th scope="col">FACILITY</th>
+      				<th scope="col"></th>
+      				<th scope="col">P</th>
+      				<th scope="col">M</th>
+      				<th scope="col">S</th>
+      				<th scope="col">U</th>
+      				<th scope="col">OTHER</th>
+					<th scope="col">TECH</th>
+      				<th scope="col">SHIP</th>
+					<th scope="col">RX</th>
+       				<th scope="col">FILL DATE</th>
+					<th scope="col">NEW</th>
+					<th scope="col">EXCEPTION</th>
+									
+    			</tr>
+  			</thead>
+  			<tbody>
+				{% for f in facility_items %}
+					<tr style="text-align:center; background-color:{{ f['bg'] }}">
+							<th scope="row" {% if current_user.is_authenticated and session['role'] == 'Administrator' %} onClick='get_batch_detail({{ f['del_bat_id'] }});'{% endif %}>{{ f['del_bat_id'] }}</th>
+							<td style="background-color:{{ f['color'] }}">{{ f['facility'] }}</td>
+							<td>{{ f['total'] }}</td>
+							<td>{{ f['p'] }}</td>
+							<td>{{ f['m'] }}</td>
+							<td>{{ f['s'] }}</td>
+							<td>{{ f['u'] }}</td>
+							<td>{{ f['o'] }}</td>
+							<td>{{ f['tech']  }}</td>
+							<td>{{ f['ship'][0:3] }}</td>
+							<td>{{ f['rx'] }}</td>
+							<td>{{ f['fil_date'] }}</td>
+							<td style="font-weight:bold">{% if f['new'] > 0 %}Y{% else %}{% endif %}</td>
+							<td style="font-weight:bold;">{{ f['exception'] }}</td>
+					</tr>
+				{% endfor %}			
+  			</tbody>
+		</table>
+		</div>
+	 </div>
+	 <!--End table HDA-2019-09-24 -->
+	
+	
+</div>
+</form>
+<!-- EXCEPTION MODAL -->
+<div class="modal" id="exceptionsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document" style="width: 800px;">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="exampleModalLabel">Complete Batch</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+         <form>
+			<div class="form-group">
+            <label for="recipient-name" class="col-form-label">Complete Status Code:</label>
+            <select class="form-control" id="selBatchCompleteCode" name="selBatchCompleteCode" required="true">
+				{% for c in batch_codes %}
+					<option value="{{c['id']}}">{{c['desc']}}</option>
+				{% endfor %}
+			</select>
+          </div>
+          <div class="form-group">
+			<span style="font-weight:bold;">Exception Count: &nbsp;</span><span id="exceptionCount"></span><br/><br/>
+			<table class="table table-striped">
+				<thead class="thead-dark">
+					<tr>
+						<th scope="col">PATIENT</th>
+						<th scope="col">DRUG NAME</th>
+						<th scope="col">DOSAGE</th>
+						<th scope="col"></th>
+					</tr>
+				</thead>
+				<tbody id="exceptionBody">
+				</tbody>
+			</table>			
+          </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">CANCEL</button>
+        <button form="processBatch" name="submit" id="submit" type="submit" class="btn btn-primary">COMPLETE</button>
+      </div>
+	  </form>
+    </div>
+  </div>
+</div>
+</div>
+<!-- TEST MODAL -->
+<div class="modal" id="bModal" abindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+		  <div class="modal-content">
+			<div class="modal-header">
+			  <h5 class="modal-title">Modal title</h5>
+			  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			  </button>
+			</div>
+			<div class="modal-body">
+			  <p>Modal body text goes here.</p>
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-primary">Save changes</button>
+			  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			</div>
+		  </div>
+		</div>
+	  </div>
+
+<!-- BATCH DETAIL MODAL -->
+<div class="modal fade" id="batchModal" tabindex="-1" role="dialog" aria-labelledby="batchModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg " role="document">
+		  <div class="modal-content">
+			<div class="modal-header bg-light">
+			  <h5 class="modal-title" id="batchModalLabel">BATCH DETAIL -</h5>        
+			</div>
+			<div class="modal-body">        						
+				  <table class="table" id="batchTable" name="batchTable">
+					  <thead class="thead-dark">
+						  <tr>
+							  <th scope="col">PATIENT</th>
+							  <th scope="col">DRG NAME</th>
+							  <th scope="col">DRG STRENGTH</th>						
+						  </tr>
+					  </thead>
+					  <tbody id="batchTableBody" name="batchTableBody">					
+					  </tbody>
+				  </table>
+			  
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnCancelBatchDetail" name="btnCancelBatchDetail">Cancel</button>        
+			</div>
+		  </div>
+		</div>
+	  </div>
+
+	  <div class="modal" id="mTotal" abindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+		  <div class="modal-content">
+			<div class="modal-header">
+			  <h5 class="modal-title">Expensive Batch Order </h5>
+			  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			  </button>
+			</div>
+			<div class="modal-body">
+				<p>The current batch has a total cost of ${{ bat_total }} <br />
+					Please add insurance to this shipment
+				</p>
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			</div>
+		  </div>
+		</div>
+	  </div>
+
+<script id="exception-template" type="text/x-custom-template">
+	<option value="0"></option>
+	{% for r in exception_codes %}
+	<option value="{{r['id']}}">({{r['id']}})-{{r['desc']}}</option>
+	{% endfor %}
+</script>
+<script type="text/javascript">
+	$('#btnFormSubmit').click(function() {
+		var exceptions = $("input:checkbox:not(:checked)");
+		var tbody = "";
+		var lookup = $('#exception-template').html();
+		document.getElementById('exceptionCount').innerHTML = exceptions.length;
+		if (exceptions.length > 0) {				
+			for (i=0; i<exceptions.length; i++) {		
+				var id = exceptions[i].id.split("_")[0];
+				if (exceptions[i].id.split("_")[1] != "toggle") {
+					tbody += "<tr><th scope='row'>" + $('#'+id+"_name").val() + "</th><td>" + $('#'+id+'_drgname').val() + 
+						"</td><td>" + $('#'+id+'_drgstrength').val() + "</td><td><select onChange='exceptionChange(this)' id='"+id+"_exceptioncode'>" + lookup + "</select></tr>";			
+				}		
+			}
+			$('#selBatchCompleteCode').val(2);
+			$('#batch_complete_code').val(2);
+			document.getElementById('exceptionBody').innerHTML = tbody;
+		} else {
+			// Submit Form
+			$('#exceptionsModal').modal('toggle');
+			$('#selBatchCompleteCode').val(1);
+			$('#batch_complete_code').val(1);
+			$('#submit').click();
+		}
+	});
+	
+	function selectAll(kop) {		
+		if ($('.'+kop+'_check:checkbox').prop('checked')) {				
+			$('.'+kop+'_check:checkbox').prop('checked',false);
+			$('#'+kop+'_toggle:checkbox').prop('checked', false);
+		} else {					
+			$('.'+kop+'_check:checkbox').prop('checked',true);
+			$('#'+kop+'_toggle:checkbox').prop('checked', true);
+		}		
+	}
+	
+	function exceptionChange(ev) {
+		var id = ev.id.split("_")[0];
+		
+		$('#'+id+"_exception").val(ev.value);
+	}
+	
+	$("#selBatchCompleteCode").on('change', function() {		
+		$('#batch_complete_code').val(this.value);		
+	});
+</script>	
+{% endif %}
+<!-- UTIL MODAL -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-danger">
+        <h5 class="modal-title">ERROR:</h5>
+        <button type="button" class="close" id="btnErrorCancel" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+		<div class="form-group row">
+			<div class="col-sm-10">
+			<span id="errorText" style=""></span>
+			</div>
+      </div>
+      <div class="modal-footer">		
+        <a href="/processing" class="btn btn-light" >CANCEL</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+	$('#btnErrorCancel').on('click', function(e) {
+
+		window.location.href = "/processing";	
+		
+	});
+	
+	if ($('#error_tuple').val() != "None") {
+		switch($('#error_tuple').val()) {
+			case '404':
+				$('#errorText').html("<b>Error Processing Batch(404):</b><br/>  <ul><li>This batch hasn't been processed by a Pharmacist</li><li>This batch has already been processed.</li><li>This batch was notnot found.</li></ul> <b>Please verify the BATCH-ID and try again.</b>");
+				break;
+			default:
+				$('#errorText').html("500: Unknown Server Error.");
+		}	
+	}
+
+	if (parseFloat("{{ bat_total }}") > 999.99){
+		$('#mTotal').modal('show');	
+	}
+
+
+</script>
+
+{% if current_user.is_authenticated and session['role'] == 'Administrator' %}
+<script type="text/javascript">	
+	function get_batch_detail(batch_id) {
+		//console.log("Batch ID: " + batch_id)
+		$('#batchTableBody').html("");
+		$.get("/rx/batch/"+ batch_id, function(data, status) {
+			//console.log("DEBUG\n"+data);
+			$('#batchTableBody').html("");
+			console.log(data)
+			$.each(data, function(k, v) {
+				$('#batchTableBody').html($('#batchTableBody').html() + "<tr><td scope='row'>" + v['name'] + "</td><td>" + v['drg_name'] + "</td><td>" + v['drg_strength']
+					+ "</td></tr>");
+				console.log(v['drg_name'])
+			});
+		})
+		.fail(function() {
+			$('#batchTableBody').html("<tr><td scope='row' colspan='3'>There was an error pulling the batch detail.</td></tr>");
+		});
+		
+		$('#batchModalLabel').html("BATCH DETAIL - " + batch_id);
+		$('#batchModal').modal('show');
+	}
+</script>
+{% endif %}
+{% endblock %}

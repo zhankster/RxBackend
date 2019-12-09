@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+	<meta http-equiv="cache-control" content="no-cache">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+   
+    <!-- Bootstrap CSS -->
+    <!-- <link rel="stylesheet" <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity=sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>IHS Pharmacy</title>
+	
+  </head>
+  <body data-spy="spyscroll" data-target=".navbar-default">
+  	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="/pending"></a>
+      <img src="/static/images/ihs-pharmacy-logo.png"/>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item" id="navPending">
+        <a class="nav-link" href="{{ url_for('pending') }}">Pending <span class="sr-only">(current)</span></a>
+      </li>
+	  <li class="nav-item" id="navPreProcessing">
+		<a class="nav-link" href="{{ url_for('pre_processing') }}">RX Processing</a>
+	  </li>
+	  <li class="nav-item" id="navRXComplete">
+		<a class="nav-link" href="{{ url_for('rx_complete') }}">RX Complete</a>
+	  </li>
+      <li class="nav-item" id="navProcessing">
+        <a  class="nav-link" href="{{ url_for('processing') }}">Processing</a>
+      </li>
+       <li class="nav-item" id="navComplete">
+        <a  class="nav-link" href="{{ url_for('complete') }}">Complete</a>
+      </li>
+       <li class="nav-item" id="navReconcile">
+        <a  class="nav-link" href="{{ url_for('reconcile') }}">Reconcile</a>
+      </li>
+	  
+	  {% if current_user.is_authenticated and session['role'] == 'Administrator' %}
+      <li class="nav-item dropdown" id="navAdmin">
+        <a  class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         Admin
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">          
+          <a class="dropdown-item" href="{{url_for('admin_kickback')}}">Facility Kick-Back</a> 
+		  <a class="dropdown-item" href="{{ url_for('admin_batch_viewer')}}" id="navException">Batch Viewer</a>
+		  <a class="dropdown-item" href="{{ url_for('admin_exception_manager')}}" id="navException">Exception Manager</a>
+		  <a class="dropdown-item" href="{{ url_for('admin_user_manager') }}">User Manager</a> 	
+          <div class="dropdown-divider"></div>          
+		  <a class="dropdown-item" href="{{ url_for('admin_exception_code_manager') }}">Exception Code Manager</a>
+          <a class="dropdown-item" href="{{ url_for('admin_facility_config') }}">Facility Configuration</a>		  
+          	  
+        </div>
+      </li>
+	  </ul>
+	  {% endif %}
+	  {% if current_user.is_authenticated %}
+	  <ul div class="navbar-nav">
+      <li class="nav-item dropdown" id="navUser">
+        <a style="font-weight:bold;color:254878" class="nav-link dropdown-toggle active" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         {{ current_user.id }}
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">          
+		  <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a> 
+        </div>
+      </li>
+	   </ul>
+	  {% endif %}
+   
+  </div>
+</nav>
+
+  <!-- MAIN CONTENT PANE -->
+  <script
+  src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+
+  {% block body %}{% endblock %}   
+  </body>
+</html>
+  </body>
+</html>

@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	var nav = document.getElementById("navAdmin");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+</script>
+<br/>
+<br/>
+<div class="container">
+  <div class="row">
+    	<div class="col">
+    		<h1 style="color:#254878;">Facility Configuration</h1>
+    		<br/>
+    	</div>
+	</div>
+	<div class="row">
+		<div class="col">
+			<button id="btnAdd" type="button" class="btn btn-primary" data-toggle="modal" data-target="#addMapping">
+			ADD
+			</button>
+		</div>
+	</div>
+	<br/>
+    <div class="row">
+    	<div class="col">
+    		<br/>
+    		<table class="table">
+  				<thead class="thead-dark">
+    				<tr>
+      					<th scope="col">FACILITY</th>
+      					<th scope="col">MON</th>
+						<th scope="col">TUES</th>
+						<th scope="col">WED</th>
+						<th scope="col">THURS</th>
+						<th scope="col">FRI</th>
+						<th scope="col">&nbsp;</th>
+						<th scope="col">&nbsp;</th>
+    				</tr>
+  				</thead>
+  				<tbody>
+					{% for f in config %}
+  					<tr>
+     		 			<th scope="row">{{ f['facility_code'] }}</th>      					
+      					<td {% if not f['2']==None %}style="background-color:{{f['2']}};"{% endif %}></td>
+						<td {% if not f['3']==None %}style="background-color:{{f['3']}};"{% endif %}></td>
+						<td {% if not f['4']==None %}style="background-color:{{f['4']}};"{% endif %}></td>
+						<td {% if not f['5']==None %}style="background-color:{{f['5']}};"{% endif %}></td>
+						<td {% if not f['6']==None %}style="background-color:{{f['6']}};"{% endif %}></td>
+						<td><a href="#" id="editFacility" onclick="editFacility('{{f['facility_code']}}')">edit</a></td>
+						<td><a href="#" id="deleteFacility" onclick="deleteFacility('{{f['facility_code']}}')">delete</a></td>
+    				</tr>
+					{% endfor %}
+  				</tbody>
+  			</table>
+    	</div>
+    </div>
+</div>
+
+<!-- Config Modal -->
+<div class="modal fade" id="addMapping" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <form method="POST" action="{{url_for('admin_facility_config')}}">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title">ADD FACILITY</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+		<div class="form-group row">
+			<label for="txtFacility" class="col-sm-2 col-form-label">FACILITY</label>
+			<div class="col-sm-2">
+				<input type="text" class="form-control" id="txtFacility" name="txtFacility" placeholder="FACILITY CODE" required>
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="selMon" class="col-sm-2 col-form-label">MON</label>
+			<div class="col-sm-10">
+				<select id="selMon" name="selMon" class="form-control">
+					<option value="0"></option>
+					{% for c in color_codes %}
+					<option value="{{c['id']}}" style="background-color:{{c['color']}}">{{c['description']}}</option>
+					{% endfor %}
+				</select>
+			</div>
+		
+		</div>
+		<div class="form-group row">
+			<label for="selTues" class="col-sm-2 col-form-label">TUES</label>
+			<div class="col-sm-10">
+				<select id="selTues" name="selTues" class="form-control">
+					<option value="0"></option>
+					{% for c in color_codes %}
+					<option value="{{c['id']}}" style="background-color:{{c['color']}}">{{c['description']}}</option>
+					{% endfor %}
+				</select>
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="selWed" class="col-sm-2 col-form-label">WED</label>
+			<div class="col-sm-10">
+				<select id="selWed" name="selWed" class="form-control">
+					<option value="0"></option>
+					{% for c in color_codes %}
+					<option value="{{c['id']}}" style="background-color:{{c['color']}}">{{c['description']}}</option>
+					{% endfor %}
+				</select>
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="selThurs" class="col-sm-2 col-form-label">THUR</label>
+			<div class="col-sm-10">
+				<select id="selThurs" name="selThurs" class="form-control">
+					<option value="0"></option>
+					{% for c in color_codes %}
+					<option value="{{c['id']}}" style="background-color:{{c['color']}}">{{c['description']}}</option>
+					{% endfor %}
+				</select>
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="selFri" class="col-sm-2 col-form-label">FRI</label>
+			<div class="col-sm-10">
+				<select id="selFri" name="selFri" class="form-control">
+					<option value="0"></option>
+					{% for c in color_codes %}
+					<option value="{{c['id']}}" style="background-color:{{c['color']}}">{{c['description']}}</option>
+					{% endfor %}
+				</select>
+			</div>
+		</div>
+      </div>
+      <div class="modal-footer">
+		<input type='hidden' id='op-code' name="op-code"/>
+		<input type='hidden' id='facility_id' name="facility_id"/>
+        <button type="submit" class="btn btn-primary">SAVE</button>
+        <button type="button" class="btn btn-light" data-dismiss="modal">CANCEL</button>
+      </div>
+    </div>
+  </div>
+ </form>
+</div>
+<!-- UTIL Modal -->
+<div class="modal fade" id="delMapping" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <form method="POST" action="{{url_for('admin_facility_config')}}">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">DELETE FACILITY</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+		<div class="form-group row">
+			<div class="col-sm-10">
+			Are you sure want to delete &nbsp;<span id="delFacId" style="font-weight: bold;"></span>
+			</div>
+      </div>
+      <div class="modal-footer">
+		<input type='hidden' id='op-code' name="op-code"/>
+		<input type='hidden' id='facility_dcode' name="facility_dcode"/>
+        <button type="submit" class="btn btn-danger">DELETE</button>
+        <button type="button" class="btn btn-light" data-dismiss="modal">CANCEL</button>
+      </div>
+    </div>
+  </div>
+ </form>
+</div>
+<script type="text/javascript">
+	function editFacility(fac) {
+		$.get("/admin/facility_config/facility/"+fac, function (data) {			
+			$('.modal-title').html('UPDATE FACILITY');
+			$('#addMapping').modal('show');
+			$('#op-code').val('update');
+			$('#txtFacility').val(data['fac_dcode']);
+			$('#selMon option[value='+data['2']+']').prop('selected', true);
+			$('#selTues option[value='+data['3']+']').prop('selected', true);
+			$('#selWed option[value='+data['4']+']').prop('selected', true);
+			$('#selThurs option[value='+data['5']+']').prop('selected', true);
+			$('#selFri option[value='+data['6']+']').prop('selected', true);
+		});	
+	}
+	
+	function deleteFacility(fac) {			
+		$('#facility_dcode').val(fac);
+		$('#delMapping').modal('show');
+		$('#delMapping #op-code').val('delete');
+		$('#delFacId').html(fac);			
+	}
+</script>
+{% endblock %}

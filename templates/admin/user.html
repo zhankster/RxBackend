@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	var nav = document.getElementById("navAdmin");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+</script>
+<br/>
+<br/>
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<h1 style="color:#254878;">User {{user['username'] }}</h1>
+			<br/>
+		</div>
+    </div>
+	<br/>
+	<div class="row">
+		<div class="col">
+			<table class="table table-striped">
+				<thead class="thead-dark">
+					<tr>
+						<th scope="col">USERNAME</th>
+						<th scope="col"></th>
+					</tr>
+				</thead>
+				<tbody>
+					
+					<tr>
+						<th scope="row">
+							{{ user['username'] }}
+							
+						</th>
+						<td>
+							
+						</td>
+					</tr>
+					
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{% endblock %}

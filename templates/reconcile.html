@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	// Set ActiveLink
+	var nav = document.getElementById("navReconcile");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+	
+</script>
+
+<br/>
+<br/>
+<div class="container">
+  <div class="row">
+    <div class="col">
+    	<h1 style="color:#254878;">Reconcile:</h1>
+    </div>
+  </div>
+
+  <!-- BATCH INPUT & METADATA -->
+  <div class="row">
+	<div class="col">
+		<table class="table">
+			<thead class="thead-dark">
+				<tr>
+					<th scope="col">BATCH</th>					
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row">
+						<form name="batch-form" id="batch-form" action="{{ url_for('reconcile') }}" method="POST" autocomplete="off">
+							<input type="textbox" autofocus="autofocus" name="batch-id" id="batch-id" required="true">
+							{% if batch != None %}
+							<input type="hidden" id="prev_del_bat_id" value="{{batch['batch_id']}}"/>
+							<input type="hidden" id="prev_fac_dcode" value="{{batch['fac_dcode']}}"/>													
+							{% endif %}
+						</form>
+					</th>					
+				</tr>
+			</tbody>
+		</table>				
+	</div>
+  </div>
+  <!-- FACILITY BATCHES MODAL -->
+<div class="modal fade" id="reconcileModal" tabindex="-1" role="dialog" aria-labelledby="reconcileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg " role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="reconcileModalLabel">RECONCILE -</h5>        
+      </div>
+      <div class="modal-body">
+        <form id="reconcileForm" name="reconcileForm">
+			<table class="table">
+			<thead class="thead-dark">
+				<tr>
+					<th scope="col">BATCH</th>					
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row">						
+						<input type="textbox" autofocus="autofocus" name="reconcileBatchID" id="reconcileBatchID" required="true">
+						<input type="hidden" id="reconcileBatchFac" name="reconcileBatchFac">
+					</th>					
+				</tr>
+			</tbody>
+			</table>				
+			<table class="table" id="batchTable" name="batchTable">
+				<thead class="thead-dark">
+					<tr>
+						<th scope="col">Batch</th>
+						<th scope="col">Status</th>
+					</tr>
+				</thead>
+				<tbody id="batchTableBody" name="batchTableBody">					
+				</tbody>
+			</table>
+		</form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnCancelReconcile" name="btnCancelReconcile">Cancel</button>
+        <!--<button type="button" class="btn btn-primary" disabled='true' id="btnReconcile" name="btnReconcile">Reconcile</button>-->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BATCH OVERRIDES MODAL -->
+<div class="modal fade" id="resolveModal" tabindex="-1" role="dialog" aria-labelledby="resolveModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg " role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="resolveModalLabel">BATCH EXCEPTIONS:</h5>        
+      </div>
+      <div class="modal-body">        				
+			<table class="table" id="batchOverridesTable" name="batchOverridesTable">
+				<thead class="thead-dark">
+					<tr>
+						<th scope="col">FIL</th>
+						<th scope="col">DESCRIPTION</th>
+					</tr>
+				</thead>
+				<tbody id="batchOverridesTableBody" name="batchOverridesTableBody">					
+				</tbody>
+			</table>
+			<input type="hidden" name="overrideBatchID" id="overrideBatchID"/>
+			<input type="hidden" name="overrideFacID" id="overrideFacID"/>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnCancelResolve" name="btnCancelResolve">Cancel</button>
+      </div>
+    </div>
+</div>
+</div> 
+<!-- ALERT ERROR MODAL -->
+<div class="modal" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="alertModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-lg-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="alertModalLabel">ERROR</h5>        
+      </div>
+      <div class="modal-body" id="alertModalBody">
+         
+      </div>
+      <div class="modal-footer">
+		<!--<button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnCancelErrorReconcile" name="btnCancelErrorReconcile">Cancel</button>-->
+        <button type="button" class="btn btn-primary" id="btnErrorReconcile" name="btnErrorReconcile">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTO RECONCILE MODAL -->
+<div class="modal" id="autoReconcileModal" tabindex="-1" role="dialog" aria-labelledby="autoReconcileLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title bg-success" id="autoReconcileLabel"></h5>        
+      </div>
+      <div class="modal-body" style="text-align:center;" id="autoReconcileBody">
+         <p style="color: green;font-size:24">&#x2714;</p>
+		 FACILITY COMPLETE
+      </div>
+      <div class="modal-footer">
+      </div>
+    </div>
+  </div>
+</div>
+
+<style type="text/css">
+	TR.pending { font-weight: bold;background-color: red; }
+	TR.complete { font-weight: bold;background-color: yellow; }
+	TR.reconciled { font-weight: bold;background-color: green; }
+</style>
+
+<script type="text/javascript">		
+	function get_batch_status(complete, reconciled) {
+		var ret;
+		
+		if (reconciled) {
+			ret = 'reconciled';
+		} else if (!reconciled && complete) {
+			ret = 'complete';
+		} else {
+			ret = 'pending';
+		}
+		
+		return ret;
+	}
+	
+	function complete_batch() {
+		$('#autoReconcileModal').modal('show');
+	
+	}
+	
+	function is_resolved(facility) {
+		var db = JSON.parse(sessionStorage.getItem(facility));		
+		var accRec = 0;
+		var accObj = Object.keys(db).length;
+		var complete = false;
+		
+		$.each(db, function(k,v) {	
+			var status = get_batch_status(v['completed'], v['reconciled']);		
+			if (status == "reconciled")
+				accRec +=1;
+		});
+		
+		if (accRec == accObj)
+			complete = true;
+			
+		return complete;
+	}
+	
+	function get_facility_batches(batch_id) {
+		$.get("/reconcile/batches", {batch_id: batch_id}, function(data) {		
+		
+			$.each(data, function(facility, batches) {
+				console.log(facility);
+				console.log(batches);
+				init_cache(facility, batches);
+				$('#reconcileBatchFac').val(facility);
+				
+				if (is_resolved(facility)) {
+					console.log(" BEEN DONE MAN --GOT HERE");
+					$('#alertModalBody').html("This facility has already been reconciled.");
+					$('#alertModal').modal('show');
+					return 0;
+				}
+				
+				reconcile_batch(facility, batch_id);
+				
+				if (refresh_batches(facility)) {
+					console.log("THIS COMPLETES BATCH - ARMY OF ONE");
+					complete_batch();	
+				} else {
+					refresh_batches(facility);
+					$('#reconcileModal').modal('show');
+					$('#reconcileModalLabel').html($('#reconcileModalLabel').html() + "<strong> " + facility + "</strong>");
+					
+				}
+			});						
+		})
+		.fail(function(response) {			
+			switch(response.status) {
+				case 404:
+					$('#alertModalBody').html("<strong>"+batch_id+"</strong> was not found.<br/><br/>Please validate the batch id and try again.");
+					break;
+				case 409:
+					$('#alertModalBody').html("This facility has already been reconciled.");
+					break;
+				default:
+					$('#alertModalBody').html("There was an unknown error occurred for <strong>"+batch_id+"</strong>.<br/><br/>Please verify the batch id and try again.");
+			}
+			$('#btnCancelErrorReconcile').hide();			
+			$('#alertModal').modal('show');				
+		});
+	}
+	
+	function refresh_batches(cache) {
+		var db = JSON.parse(sessionStorage.getItem(cache));		
+		var accRec = 0;
+		var accObj = Object.keys(db).length;
+		var complete = false;
+		var html = ""
+		$('#batchTableBody').html("");
+		$.each(db, function(k,v) {	
+			var status = get_batch_status(v['completed'], v['reconciled']);		
+			
+			if (status == "reconciled")
+				accRec +=1;
+			
+			$('#batchTableBody').html($('#batchTableBody').html() + '<tr class="' + status + '"><td scope=row>' + k + '</td><td>'+status+'</td></tr>');
+		});
+		
+		console.log(accRec + 'of' + accObj + ' reconciled');
+		if (accRec == accObj)
+			complete = true;
+			
+		return complete;
+	}
+	
+	function update_cache(cache, data){sessionStorage.setItem(cache, JSON.stringify(data));}
+	function init_cache(cache, data){update_cache(cache, data);}
+	function clear_cache(cache){sessionStorage.removeItem(cache);}
+	
+	function reconcile_batch(facility, batchID) {
+		var db = JSON.parse(sessionStorage.getItem(facility));
+		var batch = db[batchID];
+		var success = false;
+		var errorText = "";
+		var status;
+		
+		console.log(batch);
+		if (batch == undefined) {
+			$('#reconcileBatchID').val("");
+			return {status: success, msg: "This batch is not associated with this facilty, please verify batch-id and try again."};			
+		} 
+		
+		status = get_batch_status(batch.completed, batch.reconciled);
+		
+		switch(status) {
+			case 'complete':			
+				success = true;
+				
+				if (db[batchID].overrides.length > 0 && !db[batchID].resolved) {
+					$('#batchOverridesTableBody').html("");
+					$('#overrideBatchID').val(batchID);
+					$('#overrideFacID').val(facility);
+					for (i=0; i<db[batchID].overrides.length; i++) {
+						console.log(db[batchID].overrides[i]);
+						$('#batchOverridesTableBody').html($('#batchOverridesTableBody').html() + "<tr><td>"
+							+ db[batchID].overrides[i]['id'] + "</td><td>" + db[batchID].overrides[i]['desc'] + "</td></tr>"
+						 );
+					}
+					$('#resolveModal').modal('show');
+				} else {
+					db[batchID].reconciled = 1;
+					update_cache(facility, db);					
+				}
+				
+				break;
+			case 'pending':
+				errorText = "This batch has not been completed and cannot be reconciled.";	
+				$('#reconcileBatchID').val("");				
+				break;
+			case 'reconciled':
+				errorText = "This batch has already been reconciled.";
+				$('#reconcileBatchID').val("");
+				break;				
+			default:
+				errorText = "An unknown status was detected, please review batch and report this issue.";	
+				$('#reconcileBatchID').val("");
+		}
+		
+		$('#reconcileBatchID').val("");
+		return {status: success, msg: errorText};	
+	}
+	
+/*	$('#btnResolve').on('click', function(e){
+		var fac = $('#overrideFacID').val();
+		var batch = $('#overrideBatchID').val();
+		var db = JSON.parse(sessionStorage.getItem(fac));			
+		
+		db[batch].resolve = 1;
+		update_cache(fac, db);
+		
+		$('#resolveModal').modal('hide');
+	});
+*/	
+	$('#reconcileModal').on('shown.bs.modal', function(){$(this).find('[autofocus]').focus();});
+				
+	$('#batch-form').on('submit', function(e){
+		$('#batch-id').prop('disabled', true);
+		e.preventDefault();	
+		// Init Batch Data
+		get_facility_batches($('#batch-id').val());		
+	});
+	
+	$('#reconcileModal').on('hide.bs.modal', function(e){
+		clear_cache($('#reconcileBatchFac').val());
+		window.location.href = '/reconcile';
+	});
+	
+	$('#reconcileForm').on('submit', function(e){
+		e.preventDefault();
+		var batch = $( this ).find('[name=reconcileBatchID]').val();
+		var fac = $( this ).find('[name=reconcileBatchFac]').val();
+		var complete = false;
+		
+		result = reconcile_batch(fac, batch);
+		
+		if (result.status){		
+			complete = refresh_batches(fac);	
+		}else {
+			$('#btnErrorReconcile').hide();
+			$('#alertModalBody').html(result.msg);
+			$('#alertModal').modal('toggle');		
+		}		
+		
+		$('#reconcileBatchID').focus();
+		
+		if (complete)
+			complete_batch();
+		
+	});
+	
+	$('#btnCancelReconcile').on('click', function(e){
+		clear_cache($('#reconcileBatchFac').val());
+		window.location.href = '/reconcile';
+	});
+	
+	//$('#btnReconcile').on('click', function(e) 
+	function submit_batch() {		
+		var fac = $('#reconcileBatchFac').val();
+		var data = { facility: fac, batches: sessionStorage.getItem(fac) };
+
+		$.post("/reconcile", data, function (d, status) {			
+			if (status == "success") {
+				
+				sessionStorage.removeItem(fac);
+				window.location.href = '/reconcile';
+			}
+		})
+		.fail(function(status) {
+			console.log(status);
+			$('#alertModalBody').html("There was an error reconciling " + fac +".  Please try again.");
+			$('#alertModal').modal('toggle');
+		});		
+	};
+	
+	$('#btnErrorReconcile').on('click', function(e){window.location.href = '/reconcile'});
+	$('#autoReconcileModal').on('show.bs.modal', function(e){setTimeout(submit_batch, 2000)});
+  </script>
+  <div class="row">
+  	<div class="col">
+  		<br/>
+  		<div class="btn-group" role="group" aria-label="Basic example">
+			<button id="filterBtnAll" onClick="location.href = '{{url_for('reconcile')}}';" type="submit" class="btn {% if filter==None %} btn-success {% else %}btn-light{% endif %} }}">ALL</button>
+			<button id="filterBtnAir" onClick="location.href = '{{url_for('reconcile', filter=['N'])}}';" type="submit" class="btn {% if filter=='N' %} btn-success {% else %}btn-light{% endif %} }}">AIR</button>
+			<button id="filterBtnGround" onClick="location.href = '{{url_for('reconcile', filter=['G'])}}';" type="submit" class="btn {% if filter=='G' %} btn-success {% else %}btn-light{% endif %} }}">GROUND</button>
+		</div>
+	</div>
+  </div>
+  <div class="row">
+  	<div class="col">
+  		<br/>
+  		<table class="table table-striped">
+  			<thead class="thead-dark">
+    			<tr>     	 			
+      				<th scope="col">FACILITY</th>
+      				<th scope="col"></th>
+      				<th scope="col">P</th>
+      				<th scope="col">M</th>
+      				<th scope="col">S</th>
+      				<th scope="col">U</th>
+      				<th scope="col">OTHER</th>
+      				<th scope="col">TECH</th>
+       				<th scope="col">SHIP</th>
+					<th scope="col" style="text-align:center">NEW</th>
+    			</tr>
+  			</thead>
+  			<tbody>
+				{% for b in batches %}
+				<tr>
+     		 		<th scope="row">{{ b['facility'] }}</th>      				
+      				<td>{{ b['total'] }}</td>
+      				<td>{{ b['p'] }}</td>
+      				<td>{{ b['m'] }}</td>
+      				<td>{{ b['s'] }}</td>
+      				<td>{{ b['u'] }}</td>
+      				<td>{{ b['o'] }}</td>
+      				<td>{{ b['tech'] }}</td>
+					<td>{{ b['ship'] }}</td>
+      				<td style="text-align: center;font-weight:bold">{% if b['new'] > 0 %}Y{% else %}{% endif %}</td>
+    			</tr>
+				{% endfor %}	
+  			</tbody>
+		</table>
+  	</div>
+  </div>
+</div> 
+{% endblock %}
