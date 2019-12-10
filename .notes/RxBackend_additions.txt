@@ -1,3 +1,43 @@
+````2019-12-10
+#Addded procedure [dbo].[batch_detail_for_processing_iou]
+
+
+````2019-12-09
+#Setup Git repository
+
+#Tables added
+CREATE TABLE [dbo].[BAT_IOU](
+    [ID] [int] NULL,
+    [DEL_BAT_ID] [int] NOT NULL,
+    [FIL_ID] [int] NOT NULL,
+    [PHARM_TECH] [nchar](10) NOT NULL,
+    [SHIP_TECH] [nchar](10) NULL,
+    [STATUS] [nchar](3) NULL,
+    [CREATED] [datetime] NOT NULL,
+    [CLOSE_DATE] [datetime] NULL
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[BAT_IOU] ADD  CONSTRAINT [DF_BAT_IOU_CREATED]  DEFAULT (getdate()) FOR [CREATED]
+GO
+
+CREATE TABLE [dbo].[STATUS_CODES](
+    [CODE] [varchar](3) NOT NULL,
+    [CATEGORY] [varchar](30) NOT NULL,
+    [DESCRIPTION] [varchar](60) NOT NULL,
+ CONSTRAINT [PK_STATUS_CODES] PRIMARY KEY CLUSTERED
+(
+    [CODE] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+INSERT INTO STATUS_CODES VALUES('IO', 'IOU', 'IOU open')
+INSERT INTO STATUS_CODES VALUES('IF', 'IOU', 'IOU filled')
+INSERT INTO STATUS_CODES VALUES('IC', 'IOU', 'IOU user closed')
+INSERT INTO STATUS_CODES VALUES('IS', 'IOU', 'IOU system closed')
+
+
+
 ````2019-12-06
 #Added image for favicon in "base.html"
 <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
@@ -23,3 +63,6 @@ INSERT INTO dbo.[role] VALUES('PharmTech')
 			on a.ID=b.id -- New
 select u.* from users u inner join USER_ROLE r on u.id = r.ID
 where r.ROLE_ID = 1
+
+
+

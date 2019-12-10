@@ -10,7 +10,7 @@
 <div class="container">
   <div class="row">
     <div class="col">
-    	<h1 style="color:#254878;">IOU: {{ batch_id if batch_id and not errors else "" }}</h1>
+    	<h1 style="color:#254878;">IOU Request : {{ batch_id if batch_id and not errors else "" }}</h1>
 		<input type="hidden" value="{{ errors }}" id="error_tuple"/>
     	<br/>
     </div>
@@ -32,7 +32,7 @@
 				<tr>
 					<th scope="row">
 					<form name="batch-form" id="batch-form" 
-						action="{{ url_for('processing') }}" method="GET" autocomplete="off">
+						action="{{ url_for('iou') }}" method="GET" autocomplete="off">
 						<input type="text" autofocus="autofocus" name="batch-id" id="batch-id" 
 						required="true" {% if batch_id != None and not errors %}disabled=true{% endif %}>
 					</form></th>
@@ -48,7 +48,7 @@
   {% if batch != None and errors == None %}
   
   <!-- PROCESSING ACCORDION -->
-  <form name="processBatch" id="processBatch" action="{{url_for('processing')}}" method="POST">
+  <form name="processBatch" id="processBatch" action="{{url_for('iou')}}" method="POST">
   <div class="row">
   	<div class="col">
   		<div class="accordion" id="accordion">
@@ -73,10 +73,11 @@
 					<table class="table table-striped">
 						<thead class="thead">
 							<tr>
-							  <th scope="col">NAME</th>
-							  <th scope="col">MEDICATION</th>
-							  <th scope="col">QTY</th>
-							  <th scope="col">PRESENT</th>
+								<th scope="col">NAME</th>
+								<th scope="col">MEDICATION</th>
+								<th scope="col">QTY</th>
+								<th scope="col">PRESENT</th>
+								<th scope="col">IOU Status</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -101,6 +102,10 @@
 									<input type="hidden" id="{{v['id']}}_exception" name="{{v['id']}}_exception"/>
 									<input type="hidden" id="exception" name="exception" value="{{ v['exception'] }}"/>
 								</td>
+								<td>
+										{{ v['status'] }}
+										<input type="hidden" value="{{v['status']}}" id="{{ v['id'] }}_status" name="{{ v['id'] }}_status"/>
+									</td>
 							</tr>
 							{% endif %}
 							{% endfor %}							
@@ -119,56 +124,7 @@
 			</div>
 	   </div>	   
 	</div>	
-	<!--Table for all facility items HDA-2019-09-24 -->
-	 <div class="row">
-		<div class="col">
-		  		<br/>
-  		<table class="table">
-  			<thead class="thead-dark">
-    			<tr>
-     	 			<th scope="col">BATCH</th>
-      				<th scope="col">FACILITY</th>
-      				<th scope="col"></th>
-      				<th scope="col">P</th>
-      				<th scope="col">M</th>
-      				<th scope="col">S</th>
-      				<th scope="col">U</th>
-      				<th scope="col">OTHER</th>
-					<th scope="col">TECH</th>
-      				<th scope="col">SHIP</th>
-					<th scope="col">RX</th>
-       				<th scope="col">FILL DATE</th>
-					<th scope="col">NEW</th>
-					<th scope="col">EXCEPTION</th>
-									
-    			</tr>
-  			</thead>
-  			<tbody>
-				{% for f in facility_items %}
-					<tr style="text-align:center; background-color:{{ f['bg'] }}">
-							<th scope="row" {% if current_user.is_authenticated and session['role'] == 'Administrator' %} onClick='get_batch_detail({{ f['del_bat_id'] }});'{% endif %}>{{ f['del_bat_id'] }}</th>
-							<td style="background-color:{{ f['color'] }}">{{ f['facility'] }}</td>
-							<td>{{ f['total'] }}</td>
-							<td>{{ f['p'] }}</td>
-							<td>{{ f['m'] }}</td>
-							<td>{{ f['s'] }}</td>
-							<td>{{ f['u'] }}</td>
-							<td>{{ f['o'] }}</td>
-							<td>{{ f['tech']  }}</td>
-							<td>{{ f['ship'][0:3] }}</td>
-							<td>{{ f['rx'] }}</td>
-							<td>{{ f['fil_date'] }}</td>
-							<td style="font-weight:bold">{% if f['new'] > 0 %}Y{% else %}{% endif %}</td>
-							<td style="font-weight:bold;">{{ f['exception'] }}</td>
-					</tr>
-				{% endfor %}			
-  			</tbody>
-		</table>
-		</div>
-	 </div>
-	 <!--End table HDA-2019-09-24 -->
-	
-	
+
 </div>
 </form>
 <!-- EXCEPTION MODAL -->
@@ -237,53 +193,7 @@
 	  </div>
 
 <!-- BATCH DETAIL MODAL -->
-<div class="modal fade" id="batchModal" tabindex="-1" role="dialog" aria-labelledby="batchModalLabel" aria-hidden="true">
-		<div class="modal-dialog modal-lg " role="document">
-		  <div class="modal-content">
-			<div class="modal-header bg-light">
-			  <h5 class="modal-title" id="batchModalLabel">BATCH DETAIL -</h5>        
-			</div>
-			<div class="modal-body">        						
-				  <table class="table" id="batchTable" name="batchTable">
-					  <thead class="thead-dark">
-						  <tr>
-							  <th scope="col">PATIENT</th>
-							  <th scope="col">DRG NAME</th>
-							  <th scope="col">DRG STRENGTH</th>						
-						  </tr>
-					  </thead>
-					  <tbody id="batchTableBody" name="batchTableBody">					
-					  </tbody>
-				  </table>
-			  
-			</div>
-			<div class="modal-footer">
-			  <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnCancelBatchDetail" name="btnCancelBatchDetail">Cancel</button>        
-			</div>
-		  </div>
-		</div>
-	  </div>
 
-	  <div class="modal" id="mTotal" abindex="-1" role="dialog">
-		<div class="modal-dialog" role="document">
-		  <div class="modal-content">
-			<div class="modal-header">
-			  <h5 class="modal-title">Expensive Batch Order </h5>
-			  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				<span aria-hidden="true">&times;</span>
-			  </button>
-			</div>
-			<div class="modal-body">
-				<p>The current batch has a total cost of ${{ bat_total }} <br />
-					Please add insurance to this shipment
-				</p>
-			</div>
-			<div class="modal-footer">
-			  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-			</div>
-		  </div>
-		</div>
-	  </div>
 
 <script id="exception-template" type="text/x-custom-template">
 	<option value="0"></option>
@@ -355,7 +265,7 @@
 			</div>
       </div>
       <div class="modal-footer">		
-        <a href="/processing" class="btn btn-light" >CANCEL</a>
+        <a href="/iou" class="btn btn-light" >CANCEL</a>
       </div>
     </div>
   </div>
@@ -364,7 +274,7 @@
 <script type="text/javascript">
 	$('#btnErrorCancel').on('click', function(e) {
 
-		window.location.href = "/processing";	
+		window.location.href = "/iou";	
 		
 	});
 	
