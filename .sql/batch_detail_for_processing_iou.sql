@@ -37,7 +37,8 @@ IF @EXCEPTION = 1
 			,c.TCH_INITIALS as TECH 
 			,dbo.FAC_HIGHLIGHT_COLOR(a.FAC_DCODE) as COLOR
 			, 'Y' as EXCEPTION
-
+			,ISNULL(i.STATUS, 'NA') as STATUS
+			,ISNULL(QTY, 0) IOU_QTY
 		FROM 
 			BAT_EXCEPTIONS  ex
 			LEFT JOIN [UPS_Shipping].[dbo].[TO_UPS] a
@@ -63,7 +64,8 @@ IF @EXCEPTION = 1
 ELSE
 	BEGIN
 		SELECT 
-			 a.DEL_BAT_ID, a.FAC_DCODE + ' - ' + a.FAC_DNAME as FACILITY
+			 a.DEL_BAT_ID
+			,a.FAC_DCODE + ' - ' + a.FAC_DNAME as FACILITY
 			,a.FAC_DCODE
 			,a.ID
 			,a.PAT_ID 
@@ -77,6 +79,8 @@ ELSE
 			,c.TCH_INITIALS as TECH 
 			,dbo.FAC_HIGHLIGHT_COLOR(a.FAC_DCODE) as COLOR
 			,'N' as EXCEPTION
+			,ISNULL(i.STATUS, 'NA') as STATUS
+			,ISNULL(QTY, 0) IOU_QTY
 		FROM 
 			[UPS_Shipping].[dbo].[TO_UPS] a
 			LEFT JOIN [CIPS].[dbo].[DEL_BAT] b 

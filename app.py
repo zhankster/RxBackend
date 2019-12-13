@@ -541,53 +541,28 @@ def iou():
                     objects_list['KOP'][row.FIL_KOP]['patTotal'] = objects_list['KOP'][row.FIL_KOP]['patTotal'] + 1
                 objects_list['KOP'][row.FIL_KOP]['rxTotal'] = objects_list['KOP'][row.FIL_KOP]['rxTotal'] + 1
                 objects_list['KOP'][row.FIL_KOP][row.ID] = {'exception': row.EXCEPTION, 'name': row.NAME, 'id': row.ID, 'fil_id': row.FIL_ID, 'pat_id': row.PAT_ID, 'qty': int(
-                    row.QTY), 'drg_strength': row.DRG_STRENGTH, 'drg_name': row.DRG_DNAME, 'status': row.STATUS}
+                    row.QTY), 'drg_strength': row.DRG_STRENGTH, 'drg_name': row.DRG_DNAME, 'status': row.STATUS, 'iou_qty':row.IOU_QTY}
         else:
             error = 404
     elif request.method == "POST":
-
-        if request.form['exception'] == 'Y':
-            sql = "{CALL dbo.put_completed_batch (?, ?, ?, ?, ?, ?)}"
-            params = (request.form['batch_id'], request.form['facility'].split(
-                "-")[0].strip(), request.form['ship'], request.form['tech'], request.form['batch_complete_code'], session['initials'])
-            cur.execute(sql, params)
-            conn.commit()
-
-            for key, value in request.form.iteritems():
-                if len(key.split('_')) == 2:
-                    id, field = key.split('_')
-
-                    if field == "name":
-                        cur.execute("{CALL dbo.resolve_override (?, ?)}",
-                                    (request.form['batch_id'], id))
-                        conn.commit()
-        else:
-            sql = "{CALL dbo.put_completed_batch (?, ?, ?, ?, ?, ?)}"
-            params = (request.form['batch_id'], request.form['facility'].split(
-                "-")[0].strip(), request.form['ship'], request.form['tech'], request.form['batch_complete_code'], session['initials'])
-            cur.execute(sql, params)
-            conn.commit()
-
-            objects_list = []
-            for key, value in request.form.iteritems():
-                if len(key.split('_')) == 2:
-                    id, field = key.split('_')
-
-                    if field == 'exception':
-                        complete = 1
-
-                        if request.form[key] != '':
-                            complete = 0
-                            params = (int(id), (request.form['batch_id']), int(
-                                request.form[key]))
-                            cur.execute(
-                                "{CALL dbo.generate_exception (?,?,?)}", params)
-
-                        cur.execute("{CALL dbo.update_shipping_notes (?, ?, ?)}", (int(
-                            id), request.form['batch_id'], complete))
-                        conn.commit()
-
+        sql = "{CALL dbo.put_batch_fill_for_iou (?, ?, ?)}"
+        if True:
+			fills = request.form.getlist("cbfil")
+        # print(fills.encode('ascii'))
+        fills = [x.encode('UTF8') for x in fills]
+        user = session['initials']
+        # print(fills)
+        # print(request.form["3863671_iouqty"])
+        for i in fills:
+            key = i + "_iouqty"
+            if request.form[ key ] != '':
+                print(request.form[key] + ' : ' + i  + ' : ' + user)
+                params = (int(i), int(request.form[key]), user)
+                cur.execute(sql, params)
+                conn.commit()
+                
         return redirect(url_for("iou"))
+        
     else:
         objects_list = None
         batch_id = None

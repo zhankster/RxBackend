@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
 <script type="text/javascript">
-	var nav = document.getElementById("navProcessing");
+	var nav = document.getElementById("navIOU");
 	nav.className += " active";
 	nav.style.fontWeight = "bold";
 </script>
@@ -10,7 +10,7 @@
 <div class="container">
   <div class="row">
     <div class="col">
-    	<h1 style="color:#254878;">IOU Request : {{ batch_id if batch_id and not errors else "" }}</h1>
+    	<h1 style="color:#254878;">IOU Submit : {{ batch_id if batch_id and not errors else "" }}</h1>
 		<input type="hidden" value="{{ errors }}" id="error_tuple"/>
     	<br/>
     </div>
@@ -76,8 +76,9 @@
 								<th scope="col">NAME</th>
 								<th scope="col">MEDICATION</th>
 								<th scope="col">QTY</th>
-								<th scope="col">PRESENT</th>
 								<th scope="col">IOU Status</th>
+								<th scope="col">Set IOU</th>
+								<th scope="col">IOU Qty</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -90,22 +91,26 @@
 								</th>
 								<td>
 									{{v['drg_name']}} - {{v['drg_strength']}}
-									<input type="hidden" value="{{v['drg_name']}}" id="{{ v['id'] }}_drgname" name="{{ v['id'] }}_drgname"/>
-									<input type="hidden" value="{{v['drg_strength']}}" id="{{ v['id'] }}_drgstrength" name="{{ v['id'] }}_drgstrength"/>
+									<!-- <input type="hidden" value="{{v['drg_name']}}" id="{{ v['id'] }}_drgname" name="{{ v['id'] }}_drgname"/>
+									<input type="hidden" value="{{v['drg_strength']}}" id="{{ v['id'] }}_drgstrength" name="{{ v['id'] }}_drgstrength"/> -->
 								</td>
 								<td>
-									{{ v['qty'] }}
+									{{ v['qty'] }} 
 									<input type="hidden" value="{{v['qty']}}" id="{{ v['id'] }}_qty" name="{{ v['id'] }}_qty"/>
 								</td>
 								<td>
-									<input class="{{kop}}_check" type="checkbox" checked="true" id="{{ v['id'] }}_present" id="{{ v['id'] }}_present"/>
-									<input type="hidden" id="{{v['id']}}_exception" name="{{v['id']}}_exception"/>
-									<input type="hidden" id="exception" name="exception" value="{{ v['exception'] }}"/>
+									{{ v['status'] }}
+									<input type="hidden" value="{{v['status']}}" id="{{ v['id'] }}_status" name="{{ v['id'] }}_status"/>
 								</td>
 								<td>
-										{{ v['status'] }}
-										<input type="hidden" value="{{v['status']}}" id="{{ v['id'] }}_status" name="{{ v['id'] }}_status"/>
-									</td>
+									<input class="{{kop}}_check" type="checkbox"  value="{{ v['id'] }}" name="cbfil" id="{{ v['id'] }}_present" id="{{ v['id'] }}_present"/>
+									<!-- <input type="hidden" id="{{v['id']}}_exception" name="{{v['id']}}_exception"/>
+									<input type="hidden" id="exception" name="exception" value="{{ v['exception'] }}"/> -->
+								</td>
+								<td>
+									<input class="" type="text" id="{{ v['id'] }}_iouqty" name="{{ v['id'] }}_iouqty" value="{{ v['iou_qty'] }}" size="6" />
+									<!-- <input type="hidden" value="{{v['iouqty']}}" id="{{ v['id'] }}_iouqty" name="{{ v['id'] }}_iouqty"/> -->
+								</td>
 							</tr>
 							{% endif %}
 							{% endfor %}							
@@ -120,7 +125,8 @@
 			<div class="col">
 				<br/>
 				<br/>
-				<button id="btnFormSubmit" type="button" data-toggle="modal" data-target="#exceptionsModal" class="btn btn-dark">COMPLETE BATCH</button>
+				<!-- <button id="btnFormSubmit" type="button" data-toggle="modal" data-target="#exceptionsModal" class="btn btn-dark">COMPLETE BATCH</button> -->
+				<button id="btnFormSubmit" type="submit" class="btn btn-dark">COMPLETE BATCH</button>
 			</div>
 	   </div>	   
 	</div>	
@@ -202,30 +208,30 @@
 	{% endfor %}
 </script>
 <script type="text/javascript">
-	$('#btnFormSubmit').click(function() {
-		var exceptions = $("input:checkbox:not(:checked)");
-		var tbody = "";
-		var lookup = $('#exception-template').html();
-		document.getElementById('exceptionCount').innerHTML = exceptions.length;
-		if (exceptions.length > 0) {				
-			for (i=0; i<exceptions.length; i++) {		
-				var id = exceptions[i].id.split("_")[0];
-				if (exceptions[i].id.split("_")[1] != "toggle") {
-					tbody += "<tr><th scope='row'>" + $('#'+id+"_name").val() + "</th><td>" + $('#'+id+'_drgname').val() + 
-						"</td><td>" + $('#'+id+'_drgstrength').val() + "</td><td><select onChange='exceptionChange(this)' id='"+id+"_exceptioncode'>" + lookup + "</select></tr>";			
-				}		
-			}
-			$('#selBatchCompleteCode').val(2);
-			$('#batch_complete_code').val(2);
-			document.getElementById('exceptionBody').innerHTML = tbody;
-		} else {
-			// Submit Form
-			$('#exceptionsModal').modal('toggle');
-			$('#selBatchCompleteCode').val(1);
-			$('#batch_complete_code').val(1);
-			$('#submit').click();
-		}
-	});
+	// $('#btnFormSubmit').click(function() {
+	// 	var exceptions = $("input:checkbox:not(:checked)");
+	// 	var tbody = "";
+	// 	var lookup = $('#exception-template').html();
+	// 	document.getElementById('exceptionCount').innerHTML = exceptions.length;
+	// 	if (exceptions.length > 0) {				
+	// 		for (i=0; i<exceptions.length; i++) {		
+	// 			var id = exceptions[i].id.split("_")[0];
+	// 			if (exceptions[i].id.split("_")[1] != "toggle") {
+	// 				tbody += "<tr><th scope='row'>" + $('#'+id+"_name").val() + "</th><td>" + $('#'+id+'_drgname').val() + 
+	// 					"</td><td>" + $('#'+id+'_drgstrength').val() + "</td><td><select onChange='exceptionChange(this)' id='"+id+"_exceptioncode'>" + lookup + "</select></tr>";			
+	// 			}		
+	// 		}
+	// 		$('#selBatchCompleteCode').val(2);
+	// 		$('#batch_complete_code').val(2);
+	// 		document.getElementById('exceptionBody').innerHTML = tbody;
+	// 	} else {
+	// 		// Submit Form
+	// 		$('#exceptionsModal').modal('toggle');
+	// 		$('#selBatchCompleteCode').val(1);
+	// 		$('#batch_complete_code').val(1);
+	// 		$('#submit').click();
+	// 	}
+	// });
 	
 	function selectAll(kop) {		
 		if ($('.'+kop+'_check:checkbox').prop('checked')) {				

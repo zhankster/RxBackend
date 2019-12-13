@@ -42,7 +42,12 @@
        <li class="nav-item" id="navReconcile">
         <a  class="nav-link" href="{{ url_for('reconcile') }}">Reconcile</a>
       </li>
-	  
+      <li class="nav-item" id="navIOU">
+        <a  class="nav-link" href="{{ url_for('iou') }}">IOU Submit</a>
+      </li>
+      <li class="nav-item" id="navIOUProcess">
+        <a  class="nav-link" href="{{ url_for('iou') }}">IOU Process</a>
+      </li>
 	  {% if current_user.is_authenticated and session['role'] == 'Administrator' %}
       <li class="nav-item dropdown" id="navAdmin">
         <a  class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

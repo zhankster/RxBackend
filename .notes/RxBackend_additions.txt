@@ -1,6 +1,22 @@
-````2019-12-10
-#Addded procedure [dbo].[batch_detail_for_processing_iou]
+````2019-12-11
+#Updated “base.html” to add menu items for “IOU Submit” and “IOU Process”
 
+#Added column [QTY] int to [BAT_IOU]
+
+````2019-12-10
+#Added procedure [dbo].[batch_detail_for_processing_iou] to load batch
+
+#Modified “def iou()” and “iou.html”
+
+#Had to comment out lines starting out at 435 in Test Env in “app.py” due to no “CIPS” data
+        # cur1.execute("""EXEC [dbo].get_batch_total_cost ?""", batch_id.replace(' ', ''))
+        # row_batch = cur1.fetchall()
+
+        # if len(row_batch) > 0:
+        #     for row in row_batch:                
+        #         bat_total = row.TOTAL_COST
+        # else:
+        #     error = 404
 
 ````2019-12-09
 #Setup Git repository
@@ -10,10 +26,13 @@ CREATE TABLE [dbo].[BAT_IOU](
     [ID] [int] NULL,
     [DEL_BAT_ID] [int] NOT NULL,
     [FIL_ID] [int] NOT NULL,
+    [QTY] [int] NULL,
     [PHARM_TECH] [nchar](10) NOT NULL,
     [SHIP_TECH] [nchar](10) NULL,
     [STATUS] [nchar](3) NULL,
     [CREATED] [datetime] NOT NULL,
+    [LAST_USER] [nchar](10) NULL,
+    [LAST_UPDATE] [nchar](10) NULL,
     [CLOSE_DATE] [datetime] NULL
 ) ON [PRIMARY]
 GO
@@ -36,8 +55,6 @@ INSERT INTO STATUS_CODES VALUES('IF', 'IOU', 'IOU filled')
 INSERT INTO STATUS_CODES VALUES('IC', 'IOU', 'IOU user closed')
 INSERT INTO STATUS_CODES VALUES('IS', 'IOU', 'IOU system closed')
 
-
-
 ````2019-12-06
 #Added image for favicon in "base.html"
 <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
@@ -54,13 +71,13 @@ def iou():
     batch_codes = ""
     exception_codes = ""
     return render_template('iou.html',errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes)
-	
+    
 #In the [role] table added the script below
 INSERT INTO dbo.[role] VALUES('PharmTech')
 
 #### Found issues with procedure [dbo].[_get_user_by_username] on Line 22, made change below
-			on a.ID=b.user_id --Original
-			on a.ID=b.id -- New
+            on a.ID=b.user_id --Original
+            on a.ID=b.id -- New
 select u.* from users u inner join USER_ROLE r on u.id = r.ID
 where r.ROLE_ID = 1
 
