@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	var nav = document.getElementById("navIOUProcess");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+</script>
+<br/>
+<br/>
+<div class="container">
+  <div class="row">
+    <div class="col">
+    	<h1 style="color:#254878;">IOU Process</h1>
+    	<br/>
+    </div>
+  </div>
+  <div class="row">
+      <form name="processIOU" id="processIOU" action="{{url_for('iou_processing')}}" method="POST">
+        <table class="table table-striped">
+            <thead class="thead">
+                <tr>
+                    <th scope="col">Facility</th>
+                    <th scope="col">Batch</th>
+                    <th scope="col">KOP</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Medication</th>
+                    <th scope="col">Fill Qty</th>
+                    <th scope="col">Fill Date</th>
+                    <th scope="col">IOU Qty</th>
+                    <th scope="col">Process IOU</th>
+                    <input type="hidden" value"test" name="t" id="t"/>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in iou_items %}
+                <tr>
+                    <td>
+                        {{ v['facility'] }}
+                        <input type="hidden" value="{{v['facility']}}" id="{{ v['id'] }}_facility" name="{{ v['id'] }}_facility"/>
+                    </td>
+                    <td>
+                        {{ v['del_bat_id'] }}
+                        <input type="hidden" value="{{v['del_bat_id']}}" id="{{ v['id'] }}_delbatid" name="{{ v['id'] }}_delbatid"/>
+                    </td>
+                    <td>
+                        {{ v['kop'] }}
+                        <input type="hidden" value="{{v['kop']}}" id="{{ v['id'] }}_kop" name="{{ v['id'] }}_kop"/>
+                    </td>
+                    <td>
+                        {{ v['name'] }}
+                        <input type="hidden" value="{{v['name']}}" id="{{ v['id'] }}_name" name="{{ v['id'] }}_name"/>
+                    </td>
+                    <td>
+                        {{v['drg_dname']}} - {{v['drg_strength']}}
+                        <input type="hidden" value="{{v['drg_dname']}}" id="{{ v['id'] }}_drgdname" name="{{ v['id'] }}_drgdname"/>
+                        <input type="hidden" value="{{v['drg_strength']}}" id="{{ v['id'] }}_drgstrength" name="{{ v['id'] }}_drgstrength"/>
+                    </td>
+                    <td>
+                        {{ v['fill_qty'] }} 
+                        <input type="hidden" value="{{v['fill_qty']}}" id="{{ v['id'] }}_fillqty" name="{{ v['id'] }}_fillqty"/>
+                    </td>
+                    <td>
+                        {{ v['fill_date'] }} 
+                        <input type="hidden" value="{{v['fill_date']}}" id="{{ v['id'] }}_filldate" name="{{ v['id'] }}_filldate"/>
+                    </td>
+                    <td>
+                        {{ v['iou_qty'] }} 
+                        <input type="hidden" value="{{v['iou_qty']}}" id="{{ v['id'] }}_iouqty" name="{{ v['id'] }}_iouqty"/>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-sm btnFormSubmit" type='submit' value="{{ v['id'] }}" 
+                        id="{{ v['id'] }}_btnClear" name="clear_button">Close</button>
+                    </td>
+                </tr>
+                {% endfor %}							
+            </tbody>
+        </table>
+        <input type="hidden" value="" name="valSubmit" id="valSubmit" />
+        </form>				
+    </div>
+</div> 	
+<script type="text/javascript">
+  $('.btnFormSubmit').click(function(e) {
+      var id = $(this).val();
+      var med = "[" + $("#" + id + "_drgdname").val() + " - " + $("#" + id + "_drgstrength").val() + "]";
+      var qty = "<br />Quantity: " + $("#" + id + "_iouqty").val();
+      var r;
+      confirmDialog("Close IOU", "Do you want to close the IOU for " + med + qty, id, submit);
+      //console.log(r);
+      e.preventDefault();
+  });
+
+  function submit(id, result) {
+      if (result) {
+          $("#valSubmit").val(id);
+          $("#processIOU").submit();
+          console.log("Result: " + result);
+          return true
+      }
+      else{
+          console.log("Result: " + result);
+          return false
+      }
+  }
+</script>
+<!-- UTIL MODAL -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-danger">
+        <h5 class="modal-title">ERROR:</h5>
+        <button type="button" class="close" id="btnErrorCancel" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+		<div class="form-group row">
+			<div class="col-sm-10">
+			<span id="errorText" style=""></span>
+			</div>
+      </div>
+      <div class="modal-footer">		
+        <a href="/iou" class="btn btn-light" >CANCEL</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+

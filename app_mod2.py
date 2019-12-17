@@ -432,14 +432,18 @@ def processing():
 
                 facility_items.append(d)
 				#End Get Facilities HDA
-        # cur1.execute("""EXEC [dbo].get_batch_total_cost ?""", batch_id.replace(' ', ''))
-        # row_batch = cur1.fetchall()
+		cur1.execute("""EXEC [dbo].get_batch_total_cost ?""", batch_id.replace(' ', ''))
+		row_batch = cur1.fetchall()
 
-        # if len(row_batch) > 0:
-        #     for row in row_batch:                
-        #         bat_total = row.TOTAL_COST
-        # else:
-        #     error = 404
+		if len(row_batch) > 0:
+    			for row in row_batch:
+					bat_total = row.TOTAL_COST
+
+
+		
+
+        else:
+            error = 404
     #@@@@@@### END Facility data HDA-2019-09-24
 
     elif request.method == "POST":
@@ -490,6 +494,7 @@ def processing():
         objects_list = None
         batch_id = None
 
+    #return render_template('processing.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes)
     return render_template('processing.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes, facility_items=facility_items, bg=bg, bat_total = bat_total)
 	#return render_template('processing.html')
 #end Processing
@@ -497,78 +502,6 @@ def processing():
 @app.route("/iou", methods=["GET", "POST"])
 @login_required
 def iou():
-    # return render_template('test1.html')
-    batch_id = request.args.get("batch-id")
-    batch_codes = None
-    exception_codes = None
-    conn = pyodbc.connect(RX_CONNECTION_STRING)
-    cur = conn.cursor()
-    error = None
-    objects_list = {}
-    fac_dcode = '0'
-    bg = '#FFFFFF'
-
-    if request.method != "GET" or request.method != "GET":
-        if batch_id == "":
-            return redirect(url_for("iou"))
-
-        batch_codes = get_batch_complete_codes()
-        exception_codes = get_exception_codes()
-        cur.execute("""EXEC dbo.batch_detail_for_completing_iou """)
-        rows = cur.fetchall()
-
-        if len(rows) > 0:
-            pat_cache = {}
-            for row in rows:
-                if not objects_list.has_key('batch_id'):
-                    objects_list['batch_id'] = row.DEL_BAT_ID
-                    objects_list['color'] = row.COLOR
-                    objects_list['facility'] = row.FACILITY
-                    objects_list['tech'] = row.TECH
-                    objects_list['ship'] = row.SHIP
-                    # Added Facility code HDA-2019-09-24
-                    fac_dcode = row.FAC_DCODE
-                if not objects_list.has_key('KOP'):
-                    objects_list['KOP'] = collections.OrderedDict()
-                if not objects_list['KOP'].has_key(row.FIL_KOP):
-                    objects_list['KOP'][row.FIL_KOP] = collections.OrderedDict()
-                    pat_cache[row.FIL_KOP] = []
-                    objects_list['KOP'][row.FIL_KOP]['rxTotal'] = 0
-                    objects_list['KOP'][row.FIL_KOP]['patTotal'] = 0
-                if row.PAT_ID not in pat_cache[row.FIL_KOP]:
-                    pat_cache[row.FIL_KOP].append(row.PAT_ID)
-                    objects_list['KOP'][row.FIL_KOP]['patTotal'] = objects_list['KOP'][row.FIL_KOP]['patTotal'] + 1
-                objects_list['KOP'][row.FIL_KOP]['rxTotal'] = objects_list['KOP'][row.FIL_KOP]['rxTotal'] + 1
-                objects_list['KOP'][row.FIL_KOP][row.ID] = {'exception': row.EXCEPTION, 'name': row.NAME, 'id': row.ID, 'fil_id': row.FIL_ID, 'pat_id': row.PAT_ID, 'qty': int(
-                    row.QTY), 'drg_strength': row.DRG_STRENGTH, 'drg_name': row.DRG_DNAME, 'status': row.STATUS, 'iou_qty':row.IOU_QTY}
-        else:
-            error = 404
-    elif request.method == "POST":
-        sql = "{CALL dbo.put_batch_fill_for_iou (?, ?, ?)}"
-        if True:
-			fills = request.form.getlist("cbfil")
-        fills = [x.encode('UTF8') for x in fills]
-        user = session['initials']
-        # print(fills)
-        for i in fills:
-            key = i + "_iouqty"
-            if request.form[ key ] != '':
-                print(request.form[key] + ' : ' + i  + ' : ' + user)
-                params = (int(i), int(request.form[key]), user)
-                cur.execute(sql, params)
-                conn.commit()
-                
-        return redirect(url_for("iou"))
-        
-    else:
-        objects_list = None
-        batch_id = None
-
-    return render_template('iou.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes, bg=bg)
-
-@app.route("/iou_processing", methods=["GET", "POST"])
-@login_required
-def iou_processing():
     # return render_template('test1.html')
     batch_id = request.args.get("batch-id")
     batch_codes = None
@@ -612,24 +545,24 @@ def iou_processing():
                     pat_cache[row.FIL_KOP].append(row.PAT_ID)
                     objects_list['KOP'][row.FIL_KOP]['patTotal'] = objects_list['KOP'][row.FIL_KOP]['patTotal'] + 1
                 objects_list['KOP'][row.FIL_KOP]['rxTotal'] = objects_list['KOP'][row.FIL_KOP]['rxTotal'] + 1
-                objects_list['KOP'][row.FIL_KOP][row.ID] = {'exception': row.EXCEPTION, 'name': row.NAME, 'id': row.ID, 'fil_id': row.FIL_ID, 'pat_id': row.PAT_ID, 'qty': int(
-                    row.QTY), 'drg_strength': row.DRG_STRENGTH, 'drg_name': row.DRG_DNAME, 'status': row.STATUS, 'iou_qty':row.IOU_QTY}
+                objects_list['KOP'][row.FIL_KOP][row.ID] = {'exception': row.EXCEPTION, 'name': row.NAME, 'id': row.ID, 'fil_id': row.FIL_ID, 'pat_id': row.PAT_ID, 'qty': round(
+                    row.QTY,2), 'drg_strength': row.DRG_STRENGTH, 'drg_name': row.DRG_DNAME, 'status': row.STATUS, 'iou_qty':round(row.IOU_QTY,2)}
         else:
             error = 404
     elif request.method == "POST":
-        # sql = "{CALL dbo.put_batch_fill_for_iou (?, ?, ?)}"
-        # if True:
-		# 	fills = request.form.getlist("cbfil")
-        # fills = [x.encode('UTF8') for x in fills]
-        # user = session['initials']
-        # # print(fills)
-        # for i in fills:
-        #     key = i + "_iouqty"
-        #     if request.form[ key ] != '':
-        #         print(request.form[key] + ' : ' + i  + ' : ' + user)
-        #         params = (int(i), int(request.form[key]), user)
-        #         cur.execute(sql, params)
-        #         conn.commit()
+        sql = "{CALL dbo.put_batch_fill_for_iou (?, ?, ?)}"
+        if True:
+			fills = request.form.getlist("cbfil")
+        fills = [x.encode('UTF8') for x in fills]
+        user = session['initials']
+        # print(fills)
+        for i in fills:
+            key = i + "_iouqty"
+            if request.form[ key ] != '':
+                print(request.form[key] + ' : ' + i  + ' : ' + user)
+                params = (int(i), float(request.form[key]), user)
+                cur.execute(sql, params)
+                conn.commit()
                 
         return redirect(url_for("iou"))
         
@@ -638,6 +571,57 @@ def iou_processing():
         batch_id = None
 
     return render_template('iou.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes, bg=bg)
+
+
+@app.route("/iou_processing", methods=["GET", "POST"])
+@login_required
+def iou_processing():
+	conn = pyodbc.connect(RX_CONNECTION_STRING)
+	cur = conn.cursor()
+	iou_items = []
+	bg = '#FFFFFF'
+
+	if request.method != "GET" or request.method != "POST":
+		cur.execute("""EXEC dbo.batch_detail_for_completing_iou """)
+        rows = cur.fetchall()
+
+        if len(rows) > 0:
+            for row in rows:
+                i = collections.OrderedDict()
+                i['id'] = row.ID
+                i['del_bat_id'] = row.DEL_BAT_ID
+                i['fill_id'] = row.FIL_ID
+                i['fill_date'] = str(row.FIL_DATE).replace(" 00:00:00", "")
+                i['kop'] = row.FIL_KOP
+                i['facility'] = row.FACILITY
+                i['pat_id'] = row.PAT_ID
+                i['name'] = row.NAME
+                i['drg_dname'] = row.DRG_DNAME
+                i['drg_strength'] = row.DRG_STRENGTH
+                i['fill_qty'] = round(row.FILL_QTY,2)
+                i['iou_date'] = row.IOU_DATE
+                i['color'] = row.COLOR
+                i['pharm_tech'] = row.PHARM_TECH
+                i['iou_qty'] = round(row.IOU_QTY,2)
+                i['status'] = row.STATUS
+                
+                iou_items.append(i)
+
+        else:
+            iou_items = []
+            
+	if request.method == "POST":
+		sql = "{CALL dbo.close_iou_request (?, ?, ?)}"
+		id = request.form['clear_button']
+		user = session['initials']
+		status = "IC"
+		params = (int(id), user, status)
+		print(id)
+		cur.execute(sql,params)
+		conn.commit
+        
+
+	return render_template('iou_processing.html', iou_items=iou_items)
 
 
 @app.route("/rx/batch/<int:batch_id>", methods=["GET"])

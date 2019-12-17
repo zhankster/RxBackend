@@ -1,14 +1,15 @@
 USE [RXBackend]
 GO
 
-/****** Object:  StoredProcedure [dbo].[put_batch_fill_for_iou]    Script Date: 12/13/2019 10:26:48 AM ******/
+/****** Object:  StoredProcedure [dbo].[put_batch_fill_for_iou]    Script Date: 12/16/2019 4:32:05 PM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-ALTER PROC [dbo].[put_batch_fill_for_iou]
+
+CREATE PROC [dbo].[put_batch_fill_for_iou]
 (	@TO_UPS_ID INT,
 	@QTY INT,
 	@TECH NVARCHAR(10)
