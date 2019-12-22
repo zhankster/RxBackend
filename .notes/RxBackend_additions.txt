@@ -1,3 +1,25 @@
+````2019-12-17
+#Applied DB scripts to live environment
+
+````2019-12-16
+#Added “css” folder to “static” and file “site.js” and ref above to “base.html”
+
+#Added “iou_processing,html” with buttons to clear transactions
+
+````2019-12-15
+“Added "https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.3.3/bootbox.min.js" to “base.html”
+
+# Added procedure [batch_detail_for_completing_iou]
+
+````2019-12-13
+#Created function “function checkVal(num, numCompare)”
+
+#Transactions created for IOU. Need to set validation and error handling
+<script src="{{url_for('static', filename='js/util.js')}}"></script>
+
+#Added “js” folder to “static” and file “util.js” and ref below to “base.html”
+
+
 ````2019-12-11
 #Updated “base.html” to add menu items for “IOU Submit” and “IOU Process”
 

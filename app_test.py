@@ -1,3 +1,4 @@
+import os
 import collections
 import json
 import pyodbc
@@ -23,6 +24,14 @@ login_manager = LoginManager()
 login_manager.session_protection='basic'
 login_manager.init_app(app)
 
+general_users = ('Administrator','User')
+pharm_redirect = 'iou'
+
+def check_role(roles):
+        if session['role'] not in roles:
+            print(roles)
+            return True
+    
 class User(UserMixin):
     pass
 
@@ -128,7 +137,8 @@ def pending():
 	filterArg = request.args.get("filter")
 	conn = pyodbc.connect(RX_CONNECTION_STRING)
 	cur = conn.cursor()
-	
+
+    
 	if filterArg == None:
 		cur.execute("""EXEC todays_batches""")
 	else:
@@ -572,17 +582,16 @@ def iou():
 
     return render_template('iou.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes, bg=bg)
 
-
 @app.route("/iou_processing", methods=["GET", "POST"])
 @login_required
 def iou_processing():
-	conn = pyodbc.connect(RX_CONNECTION_STRING)
-	cur = conn.cursor()
-	iou_items = []
-	bg = '#FFFFFF'
+    conn = pyodbc.connect(RX_CONNECTION_STRING)
+    cur = conn.cursor()
+    iou_items = []
+    bg = '#FFFFFF'
 
-	if request.method != "GET" or request.method != "POST":
-		cur.execute("""EXEC dbo.batch_detail_for_completing_iou """)
+    if request.method == "GET":
+        cur.execute("""EXEC dbo.batch_detail_for_completing_iou """)
         rows = cur.fetchall()
 
         if len(rows) > 0:
@@ -610,18 +619,24 @@ def iou_processing():
         else:
             iou_items = []
             
-	if request.method == "POST":
-		sql = "{CALL dbo.close_iou_request (?, ?, ?)}"
-		id = request.form['clear_button']
-		user = session['initials']
-		status = "IC"
-		params = (int(id), user, status)
-		print(id)
-		cur.execute(sql,params)
-		conn.commit
+    elif request.method == "POST":
+        sql = "{CALL dbo.close_iou_request (?, ?, ?)}"
+        id = request.form['valSubmit']
+        user = session['initials']
+        status = "IC"
+        params = (int(id), user, status)
+        print("Post")
+        cur.execute(sql, params)
+        conn.commit()
+        return redirect(url_for("iou_processing"))
+    else:
+        iou_items = []
         
 
-	return render_template('iou_processing.html', iou_items=iou_items)
+    return render_template('iou_processing.html', iou_items=iou_items)
+
+
+
 
 
 @app.route("/rx/batch/<int:batch_id>", methods=["GET"])
@@ -711,39 +726,42 @@ def pre_processing():
 	return render_template('pre_processing.html', errors=error, batch_id=batch_id, batch=objects_list)
 
 @app.route("/rx_complete", methods=["GET"])
-@login_required	
+@login_required    
 def rx_complete():
-	filterArg = request.args.get("filter")
-	conn = pyodbc.connect(RX_CONNECTION_STRING)
-	cur = conn.cursor()
-	
-	if filterArg == None:
-		cur.execute("""EXEC todays_rx_complete_batches""")
-	else:
-		cur.execute("""EXEC todays_complete_rx_batches_by_shipping ?""",filterArg+'%')
-		
-	rows = cur.fetchall()
+    if check_role(general_users):
+        return redirect(url_for(pharm_redirect))
+    
+    filterArg = request.args.get("filter")
+    conn = pyodbc.connect(RX_CONNECTION_STRING)
+    cur = conn.cursor()
+    
+    if filterArg == None:
+        cur.execute("""EXEC todays_rx_complete_batches""")
+    else:
+        cur.execute("""EXEC todays_complete_rx_batches_by_shipping ?""",filterArg+'%')
+        
+    rows = cur.fetchall()
 
-	objects_list = []
-	for row in rows:
-		d = collections.OrderedDict()
-		d['del_bat_id'] = row.DEL_BAT_ID
-		d['facility'] = row.FACILITY
-		d['color'] = row.COLOR
-		d['total'] = row.P + row.M + row.S + row.U + row.O
-		d['p'] = row.P
-		d['m'] = row.M
-		d['s'] = row.S
-		d['u'] = row.U
-		d['o'] = row.O
-		d['ship'] = row.SHIP		
-		d['rx'] = row.RX_INITIALS
-		d['new'] = row.NEW
-		d['exception'] = row.EXCEPTION
-		
-		objects_list.append(d)
-		
-	return render_template('rx_complete.html', batches=objects_list, filter=filterArg)
+    objects_list = []
+    for row in rows:
+        d = collections.OrderedDict()
+        d['del_bat_id'] = row.DEL_BAT_ID
+        d['facility'] = row.FACILITY
+        d['color'] = row.COLOR
+        d['total'] = row.P + row.M + row.S + row.U + row.O
+        d['p'] = row.P
+        d['m'] = row.M
+        d['s'] = row.S
+        d['u'] = row.U
+        d['o'] = row.O
+        d['ship'] = row.SHIP        
+        d['rx'] = row.RX_INITIALS
+        d['new'] = row.NEW
+        d['exception'] = row.EXCEPTION
+        
+        objects_list.append(d)
+        
+    return render_template('rx_complete.html', batches=objects_list, filter=filterArg)
 	
 @app.route("/complete")
 @login_required
@@ -1221,3 +1239,6 @@ def logout():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
+# if __name__ == "__main__":
+#     app.run(host= '0.0.0.0')
