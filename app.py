@@ -4,7 +4,13 @@ import json
 import pyodbc
 import time
 
-from flask import Flask, render_template, url_for, request, redirect, jsonify, session
+import barcode
+from barcode.writer import ImageWriter
+import pdfkit
+path_wkhtmltopdf = r'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
+config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+
+from flask import Flask, render_template, url_for, request, redirect, jsonify, session, make_response
 # Flask-LoginManager
 from datetime import datetime
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
@@ -520,6 +526,8 @@ def iou():
     cur = conn.cursor()
     error = None
     objects_list = {}
+    iou_items = []
+    iou_files = []
     fac_dcode = '0'
     bg = '#FFFFFF'
 
@@ -556,7 +564,7 @@ def iou():
                     objects_list['KOP'][row.FIL_KOP]['patTotal'] = objects_list['KOP'][row.FIL_KOP]['patTotal'] + 1
                 objects_list['KOP'][row.FIL_KOP]['rxTotal'] = objects_list['KOP'][row.FIL_KOP]['rxTotal'] + 1
                 objects_list['KOP'][row.FIL_KOP][row.ID] = {'exception': row.EXCEPTION, 'name': row.NAME, 'id': row.ID, 'fil_id': row.FIL_ID, 'pat_id': row.PAT_ID, 'qty': round(
-                    row.QTY,2), 'drg_strength': row.DRG_STRENGTH, 'drg_name': row.DRG_DNAME, 'status': row.STATUS, 'iou_qty':round(row.IOU_QTY,2)}
+                    row.QTY,2), 'drg_strength': row.DRG_STRENGTH, 'drg_name': row.DRG_DNAME, 'status': row.STATUS, 'iou_qty':round(row.IOU_QTY,2), 'fill_date' : str(row.FIL_DATE).replace(" 00:00:00", "")}
         else:
             error = 404
     elif request.method == "POST":
@@ -565,16 +573,44 @@ def iou():
 			fills = request.form.getlist("cbfil")
         fills = [x.encode('UTF8') for x in fills]
         user = session['initials']
+        facility = request.form["facility"]
+        batch = request.form["batch_id"]
         # print(fills)
         for i in fills:
             key = i + "_iouqty"
             if request.form[ key ] != '':
                 print(request.form[key] + ' : ' + i  + ' : ' + user)
+
+                iou_kop = request.form[i + "_kop"]
+                iou_name = request.form[i + "_name"]
+                iou_medication = request.form[i + "_drgname"] + " - " + request.form[i + "_drgstrength"] 
+                iou_org_qty = request.form[i + "_qty"]
+                iou_qty = request.form[i + "_iouqty"]
+                iou_fil_date = request.form[i + "_filldate"]
+                iou_barcode = 'iou_' + i + '.png'
+                
+                rendered = render_template('iou_delivery.html', batch=batch, facility = facility, medication = iou_medication, name = iou_name, org_qty = iou_org_qty, iou_qty = iou_qty, pharm_tech = user, fill_date = iou_fil_date, iou_barcode = iou_barcode )
+                iou_filename = "iou_" + i + ".html"
+                iou_files.append("temp/" + iou_filename)
+                with open("temp/" + iou_filename,"wb") as fo:
+                    fo.write(rendered)
+                
+                ean = barcode.get('code39', i, writer=ImageWriter())
+                filename = ean.save('temp/images/iou_' + i)
                 params = (int(i), float(request.form[key]), user)
+                
                 cur.execute(sql, params)
                 conn.commit()
                 
-        return redirect(url_for("iou"))
+        pdf = pdfkit.from_file(iou_files, False, configuration=config)
+        
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'inline; filename=output.pdf'
+
+        return response
+                
+        # return redirect(url_for("iou"))
         
     else:
         objects_list = None

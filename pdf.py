@@ -23,7 +23,7 @@ def iou_delivery():
     pharm_tech = 'HDA'
     
     ean = barcode.get('code39', '123456789102', writer=ImageWriter())
-    filename = ean.save('code39_barcode')
+    filename = ean.save('temp/images/code39_barcode')
     # filename
     
     rendered = render_template('iou_delivery.html', batch=batch, medication = medication, name = name, org_qty = org_qty, iou_qty = iou_qty, pharm_tech = pharm_tech)
