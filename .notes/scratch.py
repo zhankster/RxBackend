@@ -1,4 +1,9 @@
-
+                # ean = EAN(u'5901234123457', writer=ImageWriter())
+                # text = 
+                # ean = barcode.get(u'code39', unicode(i), writer=ImageWriter())
+                # filename = ean.save('temp/images/iou_' + i)
+    
+    
     #     if request.form['exception'] == 'Y':
     #         # sql = "{CALL dbo.put_completed_batch (?, ?, ?, ?, ?, ?)}"
     #         # params = (request.form['batch_id'], request.form['facility'].split(

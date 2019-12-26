@@ -68,8 +68,10 @@
                         <input type="hidden" value="{{v['iou_qty']}}" id="{{ v['id'] }}_iouqty" name="{{ v['id'] }}_iouqty"/>
                     </td>
                     <td>
-                        <button class="btn btn-primary btn-sm btnFormSubmit" type='submit' value="{{ v['id'] }}" 
-                        id="{{ v['id'] }}_btnClear" name="clear_button">Close</button>
+                        <button id="{{ v['id'] }}_btnClear"
+                        {{ update_role }}
+                        class="btn btn-primary btn-sm btnFormSubmit" type="submit" value="{{ v['id'] }}"  
+                        name="clear_button" >Close</button>
                     </td>
                 </tr>
                 {% endfor %}							

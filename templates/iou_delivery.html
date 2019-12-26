@@ -2,55 +2,99 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>title</title>
+    <title>IOU Delivery Sheet</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.3.3/bootbox.min.js"></script>
   </head>
   <style>
       #tblMed{
         border-collapse: collapse;
-        border-spacing: 10px; 
+        border-spacing: 8px; 
         padding: 3px; 
+      }
+      td, th {
+        font-size: 18px;
+        padding: 3px; 
+      }
+
+      .title{
+        font-weight: bold;
+      }
+      p{
+        font-size:28px;
+      }
+      .theader{
+        font-weight: bold;
+        font-size:32px;
+      }
+      .img{
+        display: inline;
       }
   </style>
   <body>
-    <img src = "../static/images/ihs-pharmacy-logo.png" />
+    <div class="container">
+      <!-- <div class="row">
+        <div class="col-md-6 img">
+          <img src = "../static/images/ihs-pharmacy-logo.png" />
+          <span class="theader">IOU DELIVERY SHEET</span>
+        </div>
+        <div class="col-md-4 theader">
+          IOU DELIVERY SHEET
+        </div>
+        <div class="col-md-2">
+        </div>
+      </div> -->
+      <table>
+        <tr><td width="33%" align="left" ><img src = "../static/images/ihs-pharmacy-logo.png" /></td>
+        <td width=20%" class="theader" align="center"></td>
+        <td width="79%" class="theader" align="center">IOU DELIVERY SHEET</td>
+        </tr>
+      </table>
+    </div>
     <br />
     <table align="center" width="100%" style="font-size:12px">
         <tr><td width="33%">IHS PHARMACY<br />
             504 MCCURD AVE S, STE 7<br />
              RAINSVILLE, AL 35986</td>
-            <td width="34%"><h1>IOU DELIVERY SHEET</h1></td>
-            <td width="33%">BATCH NUMBER: {{ batch }} <br /> 
-                <img src="../temp/images/{{ iou_barcode }}" height="81" width="180"/> </td></tr>
+            <td width="34%" align="center">&nbsp;</td>
+            <td width="33%">BATCH NUMBER: {{ batch }} <td/> 
+                <!--<img src="../temp/images/{{ iou_barcode }}" height="81" width="180"/> </td></tr> -->
         <!-- <tr><td width="33%"></td>
             <td width="34%" text-align="center">IOU SHEET</td> -->
         <!-- <tr><td width="33%">RAINSVILLE, AL 35986</td>
             <td width="34%">&nbsp;</td> -->
     </table>
     <br />
-
-    <!-- <table border="1" align="center" width="100%" id="tblMed">
+<!-- 
+    <table border="1" align="center" width="100%" id="tblMed">
         <thead>
-        <tr><th width="30%">LAST NAME,FIRST NAME</th>
+        <tr>
+            <th width="30%">FACILITY</th>
+            <th width="30%">PATIENT NAME</th>
             <th width="30%">MEDICATION</th>
+            <th width="30%">FILL DATE</th>
             <th width="14%">ORIG QTY</th>
             <th width="14%">OWED QTY</th>
             <th width="12%">TECH</th></tr></thead>
         <tbody>
-        <tr><td>{{ name }}</td>
+        <tr>
+            <td>{{ facility }}</td>
+            <td>{{ name }}</td>
             <td>{{ medication }}</td>
+            <td>{{ fill_date }}</td>
             <td>{{ org_qty }}</td>
             <td>{{ iou_qty }}</td>
             <td>{{ pharm_tech }}</td>
         </tr>
         </tbody>
-        </table>
-  </body> -->
-  <p>Facility: {{ facility }}</p>
-  <p>Patient Name: {{ name }}</p>
-  <p>Medication: {{ medication }}</p>
-  <p>Fill Date: {{ fill_date }}</p>
-  <p>Original Quantity: {{ org_qty }}</p>
-  <p>Owed Quantity: {{ iou_qty }}</p>
-  <p>Pharmacy Tech: {{ pharm_tech }}</p>
-
+        </table> -->
+        <p><span class= "title">Facility:</span> <span class= "title">{{ facility }}</span></p>
+        <p><span class= "title">Patient Name:</span> <span class= "info">{{ name }}</span></p>
+        <p><span class= "title">Medication:</span> <span class= "info">{{ medication }}</span></p>
+        <p><span class= "title">Fill Date:</span> <span class= "info">{{ fill_date }}</span></p>
+        <p><span class= "title">Original Quantity:</span> <span class= "info">{{ org_qty }}</span></p>
+        <p><span class= "title">Owed Quantity:</span> <span class= "info">{{ iou_qty }}</span></p>
+        <p><span class= "title">Pharmacy Tech:</span> <span class= "info">{{ pharm_tech }}</span></p>
+  </body>
 </html>
