@@ -34,19 +34,8 @@
   </style>
   <body>
     <div class="container">
-      <!-- <div class="row">
-        <div class="col-md-6 img">
-          <img src = "../static/images/ihs-pharmacy-logo.png" />
-          <span class="theader">IOU DELIVERY SHEET</span>
-        </div>
-        <div class="col-md-4 theader">
-          IOU DELIVERY SHEET
-        </div>
-        <div class="col-md-2">
-        </div>
-      </div> -->
       <table>
-        <tr><td width="33%" align="left" ><img src = "../static/images/ihs-pharmacy-logo.png" /></td>
+        <tr><td width="33%" align="left" ><img src = "{{ logo }}" /></td> 
         <td width=20%" class="theader" align="center"></td>
         <td width="79%" class="theader" align="center">IOU DELIVERY SHEET</td>
         </tr>
@@ -59,36 +48,8 @@
              RAINSVILLE, AL 35986</td>
             <td width="34%" align="center">&nbsp;</td>
             <td width="33%">BATCH NUMBER: {{ batch }} <td/> 
-                <!--<img src="../temp/images/{{ iou_barcode }}" height="81" width="180"/> </td></tr> -->
-        <!-- <tr><td width="33%"></td>
-            <td width="34%" text-align="center">IOU SHEET</td> -->
-        <!-- <tr><td width="33%">RAINSVILLE, AL 35986</td>
-            <td width="34%">&nbsp;</td> -->
     </table>
     <br />
-<!-- 
-    <table border="1" align="center" width="100%" id="tblMed">
-        <thead>
-        <tr>
-            <th width="30%">FACILITY</th>
-            <th width="30%">PATIENT NAME</th>
-            <th width="30%">MEDICATION</th>
-            <th width="30%">FILL DATE</th>
-            <th width="14%">ORIG QTY</th>
-            <th width="14%">OWED QTY</th>
-            <th width="12%">TECH</th></tr></thead>
-        <tbody>
-        <tr>
-            <td>{{ facility }}</td>
-            <td>{{ name }}</td>
-            <td>{{ medication }}</td>
-            <td>{{ fill_date }}</td>
-            <td>{{ org_qty }}</td>
-            <td>{{ iou_qty }}</td>
-            <td>{{ pharm_tech }}</td>
-        </tr>
-        </tbody>
-        </table> -->
         <p><span class= "title">Facility:</span> <span class= "title">{{ facility }}</span></p>
         <p><span class= "title">Patient Name:</span> <span class= "info">{{ name }}</span></p>
         <p><span class= "title">Medication:</span> <span class= "info">{{ medication }}</span></p>

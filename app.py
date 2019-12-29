@@ -3,6 +3,7 @@ import collections
 import json
 import pyodbc
 import time
+import webbrowser
 
 import pdfkit
 path_wkhtmltopdf = r'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
@@ -140,8 +141,8 @@ def ping():
 
 @app.route("/pending", methods=["GET"])
 def pending():
-    if current_user.is_authenticated and check_role(general_users) == 'false':
-        return redirect(url_for(pharm_redirect))
+    # if current_user.is_authenticated and check_role(general_users) == 'false':
+    #     return redirect(url_for(pharm_redirect))
 
     filterArg = request.args.get("filter")
     conn = pyodbc.connect(RX_CONNECTION_STRING)
@@ -570,8 +571,7 @@ def iou():
             error = 404
     elif request.method == "POST":
         sql = "{CALL dbo.put_batch_fill_for_iou (?, ?, ?)}"
-        if True:
-            fills = request.form.getlist("cbfil")
+        fills = request.form.getlist("cbfil")
         fills = [x.encode('UTF8') for x in fills]
         user = session['initials']
         facility = request.form["facility"]
@@ -588,8 +588,9 @@ def iou():
                 iou_org_qty = request.form[i + "_qty"]
                 iou_qty = request.form[i + "_iouqty"]
                 iou_fil_date = request.form[i + "_filldate"]
+                logo = "../static/images/ihs-pharmacy-logo.png"  #"images/ihs-pharmacy-logo.png"
                 
-                rendered = render_template('iou_delivery.html', batch=batch_id, facility = facility, medication = iou_medication, name = iou_name, org_qty = iou_org_qty, iou_qty = iou_qty, pharm_tech = user, fill_date = iou_fil_date )
+                rendered = render_template('iou_delivery.html', batch=batch_id, facility = facility, medication = iou_medication, name = iou_name, org_qty = iou_org_qty, iou_qty = iou_qty, pharm_tech = user, fill_date = iou_fil_date, logo = logo  )
                 iou_filename = "iou_" + i + ".html"
                 iou_files.append("temp/" + iou_filename)
                 with open("temp/" + iou_filename,"wb") as fo:
@@ -656,7 +657,7 @@ def iou_processing():
         else:
             iou_items = []
             
-    elif request.method == "POST":
+    elif request.method == "POST":  
         sql = "{CALL dbo.close_iou_request (?, ?, ?)}"
         id = request.form['valSubmit']
         user = session['initials']
@@ -672,7 +673,36 @@ def iou_processing():
 
     return render_template('iou_processing.html', iou_items=iou_items, update_role = write_role)
 
+@app.route("/iou_reprint", methods=["POST"])
+@login_required
+def iou_reprint():
+    iou_files = []
+    iou_id = request.form['id']
+    batch = request.form['batch']
+    facility = request.form['facility']
+    medication = request.form['medication']
+    name = request.form['name']
+    kop = request.form['kop']
+    org_qty = request.form['org_qty']
+    iou_qty = request.form['iou_qty']
+    user = request.form['user']
+    fill_date = request.form['fill_date'] 
+    logo = "../static/images/ihs-pharmacy-logo.png"  
+    print(id,batch,facility,medication,name,kop, org_qty,iou_qty, user, fill_date)
+    # return id
+    rendered = render_template('iou_delivery.html', batch=batch, facility = facility, medication = medication, name = name, org_qty = org_qty, iou_qty = iou_qty, pharm_tech = user, fill_date = fill_date, logo=logo )
+    iou_filename = "iou_" + iou_id + ".html"
+    iou_files.append("temp/" + iou_filename)
+    with open("temp/" + iou_filename,"wb") as fo:
+            fo.write(rendered)
+    pdf = pdfkit.from_string(rendered, False, configuration=config)
+    pdfkit.from_file(iou_files, "static/pdf/" + iou_id + ".pdf", configuration=config)
+    
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=' + iou_id + '.pdf'
 
+    return response
 
 
 

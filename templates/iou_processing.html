@@ -26,8 +26,10 @@
                     <th scope="col">Medication</th>
                     <th scope="col">Fill Qty</th>
                     <th scope="col">Fill Date</th>
+                    <th scope="col">Tech</th>
                     <th scope="col">IOU Qty</th>
-                    <th scope="col">Process IOU</th>
+                    <th scope="col" colspan="2">Process IOU</th>
+                    <input type="hidden" value"test" name="t" id="t"/>
                     <input type="hidden" value"test" name="t" id="t"/>
                 </tr>
             </thead>
@@ -64,6 +66,10 @@
                         <input type="hidden" value="{{v['fill_date']}}" id="{{ v['id'] }}_filldate" name="{{ v['id'] }}_filldate"/>
                     </td>
                     <td>
+                        {{ v['pharm_tech'] }}
+                        <input type="hidden" value="{{v['pharm_tech']}}" id="{{ v['id'] }}_pharmtech" name="{{ v['id'] }}_pharmtech"/>
+                    </td>
+                    <td>
                         {{ v['iou_qty'] }} 
                         <input type="hidden" value="{{v['iou_qty']}}" id="{{ v['id'] }}_iouqty" name="{{ v['id'] }}_iouqty"/>
                     </td>
@@ -72,6 +78,10 @@
                         {{ update_role }}
                         class="btn btn-primary btn-sm btnFormSubmit" type="submit" value="{{ v['id'] }}"  
                         name="clear_button" >Close</button>
+                    </td>
+                    <td>
+                        <button id="{{ v['id'] }}_btnReprint" class="btn btn-primary btn-sm btnReprint" type="submit" value="{{ v['id'] }}"  
+                        name="submit_button" >Reprint</button>
                     </td>
                 </tr>
                 {% endfor %}							
@@ -82,28 +92,69 @@
     </div>
 </div> 	
 <script type="text/javascript">
-  $('.btnFormSubmit').click(function(e) {
-      var id = $(this).val();
-      var med = "[" + $("#" + id + "_drgdname").val() + " - " + $("#" + id + "_drgstrength").val() + "]";
-      var qty = "<br />Quantity: " + $("#" + id + "_iouqty").val();
-      var r;
-      confirmDialog("Close IOU", "Do you want to close the IOU for " + med + qty, id, submit);
-      //console.log(r);
-      e.preventDefault();
-  });
+    $('.btnFormSubmit').click(function(e) {
+        var id = $(this).val();
+        var med = "[" + $("#" + id + "_drgdname").val() + " - " + $("#" + id + "_drgstrength").val() + "]";
+        var qty = "<br />Quantity: " + $("#" + id + "_iouqty").val();
+        var r;
+        confirmDialog("Close IOU", "Do you want to close the IOU for " + med + qty, id, submit);
+        //console.log(r);
+        e.preventDefault();
+    });
 
-  function submit(id, result) {
-      if (result) {
-          $("#valSubmit").val(id);
-          $("#processIOU").submit();
-          console.log("Result: " + result);
-          return true
-      }
-      else{
-          console.log("Result: " + result);
-          return false
-      }
-  }
+    $('.btnReprint').click(function(e) {
+        id = $(this).val();
+        batch = $("#" + id + "_delbatid").val();
+        facility = $("#" + id + "_facility").val();
+        kop = $("#" + id + "_kop").val();
+        name = $("#" + id + "_name").val();
+        medication = $("#" + id + "_drgdname").val() + " - " + $("#" + id + "_drgstrength").val();
+        org_qty = $("#" + id + "_fillqty").val();
+        iou_qty = $("#" + id + "_iouqty").val();
+        user = $("#" + id + "_pharmtech").val();
+        fill_date = $("#" + id + "_filldate").val();
+        console.log(id, batch, facility, medication, org_qty, iou_qty,fill_date);
+        $.ajax({
+            type: "POST",
+            url: "{{url_for('iou_reprint')}}",
+            dataType: 'json',
+            data: {
+                'id' : id
+                ,'batch' : batch
+                ,'kop' : kop
+                ,'name' : name
+                ,'facility' : facility
+                ,'medication' : medication
+                ,'org_qty' : org_qty
+                ,'iou_qty' : iou_qty
+                ,'fill_date' : fill_date
+                ,'user' : user
+            },
+            async: false,
+            success: function (data) {
+                $.each(data, function (index, item) {
+                });
+            },
+            complete: function (data) {
+                window.open("static/pdf/" + id + ".pdf", '_blank')
+            }
+
+        });
+        e.preventDefault();
+    });
+
+    function submit(id, result) {
+        if (result) {
+            $("#valSubmit").val(id);
+            $("#processIOU").submit();
+            console.log("Result: " + result);
+            return true
+        }
+        else{
+            console.log("Result: " + result);
+            return false
+        }
+    }
 </script>
 <!-- UTIL MODAL -->
 <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">

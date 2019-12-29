@@ -1,4 +1,15 @@
-                <!--<img src="../temp/images/{{ iou_barcode }}" height="81" width="180"/> </td></tr> -->
+"{{ url_for('static', filename=logo) }}"
+<tr><td width="33%" align="left" ><img src = "static/images/ihs-pharmacy-logo.png" /></td> 
+"{{ url_for('static', filename='images/ihs-pharmacy-logo.png') }}"
+
+<form method="POST" name="{{ v['id'] }}_reprintIOU" id="{{ v['id'] }}_reprintIOU" action="{{url_for('iou_reprint')}}" target="_blank" >
+    <button id="{{ v['id'] }}_btnReprint" class="btn btn-primary btn-sm btnReprint" type="submit" value="{{ v['id'] }}"  
+    name="submit_button" >Reprint</button>
+    <input type="hidden" name="{{ v['id'] }}_rbatch" id="{{ v['id'] }}_rbatch" value="{{v['del_bat_id']}}" />
+</form>
+
+ 
+<!--<img src="../temp/images/{{ iou_barcode }}" height="81" width="180"/> </td></tr> -->
         <!-- <tr><td width="33%"></td>
             <td width="34%" text-align="center">IOU SHEET</td> -->
         <!-- <tr><td width="33%">RAINSVILLE, AL 35986</td>
