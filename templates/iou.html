@@ -55,6 +55,7 @@
 		<input type="hidden" value="{{batch['facility']}}" id="facility" name="facility"/>
 		<input type="hidden" value="{{batch['ship']}}" id="ship" name="ship"/>
 		<input type="hidden" value="{{batch['tech']}}" id="tech" name="tech"/>
+		<input type="hidden" value="{{ current_user.id }}" id="username" name="username"/>
 		<input type="hidden" value="{{batch_id}}" id="batch_id" name="batch_id"/>
 		<input type="hidden" id="batch_complete_code" name="batch_complete_code"/>
 		{% for kop, rx in batch['KOP'].items() %}
@@ -241,7 +242,7 @@
 		}
 		else
 		{
-			// Submit Form
+			window.open("/iou", '_blank')
 			$('#submit').click();
 		}
 	e.preventDefault()

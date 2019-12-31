@@ -3,7 +3,8 @@
 <script type="text/javascript">
 	var nav = document.getElementById("navIOUProcess");
 	nav.className += " active";
-	nav.style.fontWeight = "bold";
+    nav.style.fontWeight = "bold";
+
 </script>
 <br/>
 <br/>
@@ -27,7 +28,9 @@
                     <th scope="col">Fill Qty</th>
                     <th scope="col">Fill Date</th>
                     <th scope="col">Tech</th>
+                    <th scope="col">Status</th>
                     <th scope="col">IOU Qty</th>
+                    <th scope="col">IOU Fill</th>
                     <th scope="col" colspan="2">Process IOU</th>
                     <input type="hidden" value"test" name="t" id="t"/>
                     <input type="hidden" value"test" name="t" id="t"/>
@@ -66,17 +69,25 @@
                         <input type="hidden" value="{{v['fill_date']}}" id="{{ v['id'] }}_filldate" name="{{ v['id'] }}_filldate"/>
                     </td>
                     <td>
-                        {{ v['pharm_tech'] }}
-                        <input type="hidden" value="{{v['pharm_tech']}}" id="{{ v['id'] }}_pharmtech" name="{{ v['id'] }}_pharmtech"/>
+                        {{ v['initials'] }}
+                        <input type="hidden" value="{{v['initials']}}" id="{{ v['id'] }}_initials" name="{{ v['id'] }}_initials"/>
+                    </td>
+                    <td>
+                        {{ v['stat_desc'] }}
+                        <input type="hidden" value="{{v['stat_desc']}}" id="{{ v['id'] }}_statdesc" name="{{ v['id'] }}_statdesc"/>
                     </td>
                     <td>
                         {{ v['iou_qty'] }} 
                         <input type="hidden" value="{{v['iou_qty']}}" id="{{ v['id'] }}_iouqty" name="{{ v['id'] }}_iouqty"/>
                     </td>
                     <td>
+                        {{ v['iou_comp'] }} 
+                        <input type="hidden" value="{{v['iou_comp']}}" id="{{ v['id'] }}_ioucomp" name="{{ v['id'] }}_ioucomp"/>
+                    </td>
+                    <td>
                         <button id="{{ v['id'] }}_btnClear"
                         {{ update_role }}
-                        class="btn btn-primary btn-sm btnFormSubmit" type="submit" value="{{ v['id'] }}"  
+                        class="btn btn-primary btn-sm btnFormSubmit" type="button" value="{{ v['id'] }}"  
                         name="clear_button" >Close</button>
                     </td>
                     <td>
@@ -92,13 +103,24 @@
     </div>
 </div> 	
 <script type="text/javascript">
+
+
+    function openDialog(id, err){
+        $("#mMedication").text("[" + $("#" + id + "_drgdname").val() + " - " + $("#" + id + "_drgstrength").val() + "]");
+        $("#mIouQty").text($("#" + id + "_iouqty").val());
+        $("#mIouComp").text($("#" + id + "_ioucomp").val());
+        var rem_qty = Number($("#" + id + "_iouqty").val()) - Number($("#" + id + "_ioucomp").val());
+        $("#mfillVal").val(rem_qty);
+        $("#mIdSubmit").val(id);
+        $("#pError").text(err);
+
+        $('#processModal').modal('show');
+    }
+
     $('.btnFormSubmit').click(function(e) {
         var id = $(this).val();
-        var med = "[" + $("#" + id + "_drgdname").val() + " - " + $("#" + id + "_drgstrength").val() + "]";
-        var qty = "<br />Quantity: " + $("#" + id + "_iouqty").val();
-        var r;
-        confirmDialog("Close IOU", "Do you want to close the IOU for " + med + qty, id, submit);
-        //console.log(r);
+        //$('#processModal').modal('show');
+        openDialog(id, "");
         e.preventDefault();
     });
 
@@ -142,21 +164,68 @@
         });
         e.preventDefault();
     });
+    
+    $(document).on("click", "#btnSaveProcess", function(event){
+        alert("Clicked");
+    });
 
-    function submit(id, result) {
+    function submit(id, qty, result) {
         if (result) {
-            $("#valSubmit").val(id);
-            $("#processIOU").submit();
+            var iou_qty = $("#" + id + "_iouqty").val();
+            var iou_comp = $("#" + id + "_ioucomp").val();
+            var rem_qty = Number(iou_qty) - Number(iou_comp);
+            alert(qty);
+            //$("#valSubmit").val(id);
+            //$("#processIOU").submit();
             console.log("Result: " + result);
+            //not_processing = false;
             return true
         }
         else{
             console.log("Result: " + result);
+            //not_processing = false;
             return false
         }
     }
 </script>
-<!-- UTIL MODAL -->
+<input type="hidden" value="" id="idSubmit" />
+<div class="modal" tabindex="-1" role="dialog" id="processModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Close IOU</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>
+                Do you want to close the IOU for <span id="mMedication"></span><br />
+                Total IOU Quantity: <span id="mIouQty"></span> with <span id="mIouComp"></span> Filled
+                </p>
+
+                <p>
+                Quantity to Fill: <input style='text-align: right' size='6' type='text'  id='mfillVal' /> 
+                (A partial qty will keep the IOU open)
+                </p>
+
+                <p>
+                    Close without completing <input  type='checkbox' id='cbIOU' name='cbIOU' />
+                </p>
+
+                <p style='color:red; font-weight:bold' id="pError">
+                </p>
+                <input type="hidden" id="mIdSubmit" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnSaveProcess">Save changes</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ERROR MODAL -->
 <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">

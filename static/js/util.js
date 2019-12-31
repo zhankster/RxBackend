@@ -13,7 +13,7 @@ function checkVal(num, numCompare) {
     return "Not a valid numeric value";
 }
 
-function confirmDialog(head, msg, id, cb){
+function confirmDialog(head, msg, id, qty, cb){
     bootbox.confirm({
             title: head,
             message: msg, 
@@ -29,7 +29,7 @@ function confirmDialog(head, msg, id, cb){
             },
             callback: function(result) { 
                 console.log('This was logged in the callback: ' + result);
-                cb(id, result);
+                cb(id, qty, result);
             }
         });
 }

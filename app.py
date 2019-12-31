@@ -141,9 +141,6 @@ def ping():
 
 @app.route("/pending", methods=["GET"])
 def pending():
-    # if current_user.is_authenticated and check_role(general_users) == 'false':
-    #     return redirect(url_for(pharm_redirect))
-
     filterArg = request.args.get("filter")
     conn = pyodbc.connect(RX_CONNECTION_STRING)
     cur = conn.cursor()
@@ -356,9 +353,6 @@ def pro_org():
     return render_template('processing.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes)
     
 
-#end Processing
-
-
 @app.route("/processing", methods=["GET", "POST"])
 @login_required
 def processing():
@@ -512,10 +506,7 @@ def processing():
         objects_list = None
         batch_id = None
 
-    #return render_template('processing.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes)
     return render_template('processing.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes, facility_items=facility_items, bg=bg, bat_total = bat_total)
-    #return render_template('processing.html')
-#end Processing
 
 @app.route("/iou", methods=["GET", "POST"])
 @login_required
@@ -573,29 +564,27 @@ def iou():
         sql = "{CALL dbo.put_batch_fill_for_iou (?, ?, ?)}"
         fills = request.form.getlist("cbfil")
         fills = [x.encode('UTF8') for x in fills]
-        user = session['initials']
+        # user = session['initials']
+        user = request.form["username"]
         facility = request.form["facility"]
         batch_id = request.form["batch_id"]
         # print(fills)
         for i in fills:
             key = i + "_iouqty"
             if request.form[ key ] != '':
-                print(request.form[key] + ' : ' + i  + ' : ' + user)
-
                 iou_kop = request.form[i + "_kop"]
                 iou_name = request.form[i + "_name"]
                 iou_medication = request.form[i + "_drgname"] + " - " + request.form[i + "_drgstrength"] 
                 iou_org_qty = request.form[i + "_qty"]
                 iou_qty = request.form[i + "_iouqty"]
                 iou_fil_date = request.form[i + "_filldate"]
-                logo = "../static/images/ihs-pharmacy-logo.png"  #"images/ihs-pharmacy-logo.png"
+                logo = "../static/images/ihs-pharmacy-logo.png" 
                 
                 rendered = render_template('iou_delivery.html', batch=batch_id, facility = facility, medication = iou_medication, name = iou_name, org_qty = iou_org_qty, iou_qty = iou_qty, pharm_tech = user, fill_date = iou_fil_date, logo = logo  )
                 iou_filename = "iou_" + i + ".html"
                 iou_files.append("temp/" + iou_filename)
                 with open("temp/" + iou_filename,"wb") as fo:
                     fo.write(rendered)
-                print(i)
                 params = (int(i), float(request.form[key]), user)
                 
                 cur.execute(sql, params)
@@ -608,9 +597,7 @@ def iou():
         response.headers['Content-Disposition'] = 'inline; filename=' + batch_id + '.pdf'
 
         return response
-                
-        # return redirect(url_for("iou"))
-        
+
     else:
         objects_list = None
         batch_id = None
@@ -623,6 +610,7 @@ def iou_processing():
     write_role = ""
     if check_role(general_users) == 'false':
         write_role ="disabled=disabled"
+    print(session['role'])
     conn = pyodbc.connect(RX_CONNECTION_STRING)
     cur = conn.cursor()
     iou_items = []
@@ -649,8 +637,11 @@ def iou_processing():
                 i['iou_date'] = row.IOU_DATE
                 i['color'] = row.COLOR
                 i['pharm_tech'] = row.PHARM_TECH
+                i['initials'] = row.INTIALS
                 i['iou_qty'] = round(row.IOU_QTY,2)
+                i['iou_comp'] = round(row.IOU_COMP,2)
                 i['status'] = row.STATUS
+                i['stat_desc'] = row.STAT_DESC
                 
                 iou_items.append(i)
 
@@ -694,15 +685,11 @@ def iou_reprint():
     iou_filename = "iou_" + iou_id + ".html"
     iou_files.append("temp/" + iou_filename)
     with open("temp/" + iou_filename,"wb") as fo:
-            fo.write(rendered)
-    pdf = pdfkit.from_string(rendered, False, configuration=config)
-    pdfkit.from_file(iou_files, "static/pdf/" + iou_id + ".pdf", configuration=config)
+        fo.write(rendered)
     
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'inline; filename=' + iou_id + '.pdf'
+    pdfkit.from_file(iou_files, "static/pdf/" + iou_id + ".pdf", configuration=config)
 
-    return response
+    return True
 
 
 
