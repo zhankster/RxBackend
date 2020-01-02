@@ -4,6 +4,7 @@ import json
 import pyodbc
 import time
 import webbrowser
+from decimal import *
 
 import pdfkit
 path_wkhtmltopdf = r'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
@@ -624,6 +625,7 @@ def iou_processing():
             for row in rows:
                 i = collections.OrderedDict()
                 i['id'] = row.ID
+                i['iou_id'] = row.IOU_ID
                 i['del_bat_id'] = row.DEL_BAT_ID
                 i['fill_id'] = row.FIL_ID
                 i['fill_date'] = str(row.FIL_DATE).replace(" 00:00:00", "")
@@ -642,18 +644,18 @@ def iou_processing():
                 i['iou_comp'] = round(row.IOU_COMP,2)
                 i['status'] = row.STATUS
                 i['stat_desc'] = row.STAT_DESC
-                
                 iou_items.append(i)
 
         else:
             iou_items = []
             
     elif request.method == "POST":  
-        sql = "{CALL dbo.close_iou_request (?, ?, ?)}"
-        id = request.form['valSubmit']
-        user = session['initials']
-        status = "IC"
-        params = (int(id), user, status)
+        sql = "{CALL dbo.close_iou_request (?, ?, ?,?)}"
+        id = request.form['iou_id']
+        iou_qty = request.form['add_qty']
+        user = request.form['user']
+        status = request.form['status']
+        params = (int(id), Decimal(iou_qty),user, status)
         print("Post")
         cur.execute(sql, params)
         conn.commit()

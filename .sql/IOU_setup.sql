@@ -1,8 +1,11 @@
 select * from users where username like 'h%' or username like 'b%'
 31 - hanka 4 - bryant 6 - dakotar
-select * from user_role where ID in (31,4,6)
+select * from user_role where USER_ID in (31,4,6, 35)
 select u.* from users u inner join USER_ROLE r on u.id = r.ID where r.ROLE_ID = 1
 select * from role
+exec [dbo].[get_user_by_id] 35
+EXEC get_user_by_username 'hallen'
+EXEC get_user_by_username 'bryant'
 
 select * from UPS_Shipping.dbo.TO_UPS where DEL_BAT_ID = 584263
 select * from UPS_Shipping.dbo.TO_UPS where FIL_ID = 9198314
@@ -35,7 +38,10 @@ select * from BAT_COMPLETE
 select * from BAT_RECONCILED
 select * from [dbo].[BAT_EXCEPTIONS]
 --truncate table [dbo].[BAT_IOU]
+--truncate table [dbo].[BAT_IOU_TRANS]
 select * from [dbo].[BAT_IOU]
+select * from [dbo].[BAT_IOU_TRANS]
+select * from [dbo].[STATUS_CODES]
 
 --Mock records for RX Processing
 INSERT INTO BAT_PRE_PROCESSED VALUES (584381, GETDATE(), 'NA')
@@ -115,4 +121,35 @@ INSERT INTO STATUS_CODES VALUES('IO', 'IOU', 'Open')
 INSERT INTO STATUS_CODES VALUES('IF', 'IOU', 'Filled')
 INSERT INTO STATUS_CODES VALUES('IC', 'IOU', 'User Closed')
 INSERT INTO STATUS_CODES VALUES('IS', 'IOU', 'System Closed')
+INSERT INTO STATUS_CODES VALUES('IP', 'IOU', 'Partial')
 --TRUNCATE TABLE STATUS_CODES
+SELECT *  FROM STATUS_CODES
+
+select * from users where username like 'h%' or username like 'b%'
+31 - hanka 4 - bryant 6 - dakotar
+select * from user_role where USER_ID in (31,4,6, 35, 33)
+select u.* from users u inner join USER_ROLE r on u.id = r.ID where r.ROLE_ID = 1
+select * from role
+exec [dbo].[get_user_by_id] 35
+EXEC get_user_by_username 'dadams'
+EXEC get_user_by_username 'bryant'
+
+SELECT
+	a.id
+	,a.username
+	,a.password
+	,a.salt
+	,a.enabled
+	,c.description as role
+	,a.INTIALS as initials
+	,b.ROLE_ID
+	,b.USER_ID ROLE_
+FROM
+	[RXBackend].[dbo].[users] a
+	LEFT JOIN [RXBackend].[dbo].[user_role] b
+		on a.ID=b.ID
+	LEFT JOIN [RXBackend].[dbo].[role] c
+		on b.role_id=c.id
+WHERE
+	a.username='hallen'
+	AND a.enabled = 1

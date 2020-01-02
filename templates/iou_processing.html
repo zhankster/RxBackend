@@ -32,7 +32,7 @@
                     <th scope="col">IOU Qty</th>
                     <th scope="col">IOU Fill</th>
                     <th scope="col" colspan="2">Process IOU</th>
-                    <input type="hidden" value"test" name="t" id="t"/>
+                    <input type="hidden" value"{{ current_user.id }}" name="current_user" id="current_user"/>
                     <input type="hidden" value"test" name="t" id="t"/>
                 </tr>
             </thead>
@@ -41,57 +41,62 @@
                 <tr>
                     <td>
                         {{ v['facility'] }}
-                        <input type="hidden" value="{{v['facility']}}" id="{{ v['id'] }}_facility" name="{{ v['id'] }}_facility"/>
+                        <input type="hidden" value="{{v['facility']}}" id="{{ v['iou_id'] }}_facility" name="{{ v['iou_id'] }}_facility"/>
                     </td>
                     <td>
                         {{ v['del_bat_id'] }}
-                        <input type="hidden" value="{{v['del_bat_id']}}" id="{{ v['id'] }}_delbatid" name="{{ v['id'] }}_delbatid"/>
+                        <input type="hidden" value="{{v['del_bat_id']}}" id="{{ v['iou_id'] }}_delbatid" name="{{ v['iou_id'] }}_delbatid"/>
                     </td>
                     <td>
                         {{ v['kop'] }}
-                        <input type="hidden" value="{{v['kop']}}" id="{{ v['id'] }}_kop" name="{{ v['id'] }}_kop"/>
+                        <input type="hidden" value="{{v['kop']}}" id="{{ v['iou_id'] }}_kop" name="{{ v['iou_id'] }}_kop"/>
                     </td>
                     <td>
                         {{ v['name'] }}
-                        <input type="hidden" value="{{v['name']}}" id="{{ v['id'] }}_name" name="{{ v['id'] }}_name"/>
+                        <input type="hidden" value="{{v['name']}}" id="{{ v['iou_id'] }}_name" name="{{ v['iou_id'] }}_name"/>
                     </td>
                     <td>
                         {{v['drg_dname']}} - {{v['drg_strength']}}
-                        <input type="hidden" value="{{v['drg_dname']}}" id="{{ v['id'] }}_drgdname" name="{{ v['id'] }}_drgdname"/>
-                        <input type="hidden" value="{{v['drg_strength']}}" id="{{ v['id'] }}_drgstrength" name="{{ v['id'] }}_drgstrength"/>
+                        <input type="hidden" value="{{v['drg_dname']}}" id="{{ v['iou_id'] }}_drgdname" name="{{ v['iou_id'] }}_drgdname"/>
+                        <input type="hidden" value="{{v['drg_strength']}}" id="{{ v['iou_id'] }}_drgstrength" name="{{ v['iou_id'] }}_drgstrength"/>
                     </td>
                     <td>
                         {{ v['fill_qty'] }} 
-                        <input type="hidden" value="{{v['fill_qty']}}" id="{{ v['id'] }}_fillqty" name="{{ v['id'] }}_fillqty"/>
+                        <input type="hidden" value="{{v['fill_qty']}}" id="{{ v['iou_id'] }}_fillqty" name="{{ v['iou_id'] }}_fillqty"/>
                     </td>
                     <td>
                         {{ v['fill_date'] }} 
-                        <input type="hidden" value="{{v['fill_date']}}" id="{{ v['id'] }}_filldate" name="{{ v['id'] }}_filldate"/>
+                        <input type="hidden" value="{{v['fill_date']}}" id="{{ v['iou_id'] }}_filldate" name="{{ v['iou_id'] }}_filldate"/>
                     </td>
                     <td>
                         {{ v['initials'] }}
-                        <input type="hidden" value="{{v['initials']}}" id="{{ v['id'] }}_initials" name="{{ v['id'] }}_initials"/>
+                        <input type="hidden" value="{{v['initials']}}" id="{{ v['iou_id'] }}_initials" name="{{ v['iou_id'] }}_initials"/>
+                        <input type="hidden" value="{{v['pharm_tech']}}" id="{{ v['iou_id'] }}_pharmtech" name="{{ v['iou_id'] }}_initials"/>
                     </td>
                     <td>
                         {{ v['stat_desc'] }}
-                        <input type="hidden" value="{{v['stat_desc']}}" id="{{ v['id'] }}_statdesc" name="{{ v['id'] }}_statdesc"/>
+
+
+
+                        <input type="hidden" value="{{v['stat_desc']}}" id="{{ v['iou_id'] }}_statdesc" name="{{ v['iou_id'] }}_statdesc"/>
                     </td>
                     <td>
                         {{ v['iou_qty'] }} 
-                        <input type="hidden" value="{{v['iou_qty']}}" id="{{ v['id'] }}_iouqty" name="{{ v['id'] }}_iouqty"/>
+                        <input type="hidden" value="{{v['iou_qty']}}" id="{{ v['iou_id'] }}_iouqty" name="{{ v['iou_id'] }}_iouqty"/>
                     </td>
                     <td>
                         {{ v['iou_comp'] }} 
-                        <input type="hidden" value="{{v['iou_comp']}}" id="{{ v['id'] }}_ioucomp" name="{{ v['id'] }}_ioucomp"/>
+                        <input type="hidden" value="{{v['iou_comp']}}" id="{{ v['iou_id'] }}_ioucomp" name="{{ v['iou_id'] }}_ioucomp"/>
+                        
                     </td>
                     <td>
-                        <button id="{{ v['id'] }}_btnClear"
+                        <button id="{{ v['iou_id'] }}_btnClear"
                         {{ update_role }}
-                        class="btn btn-primary btn-sm btnFormSubmit" type="button" value="{{ v['id'] }}"  
+                        class="btn btn-primary btn-sm btnFormSubmit" type="button" value="{{ v['iou_id'] }}"  
                         name="clear_button" >Close</button>
                     </td>
                     <td>
-                        <button id="{{ v['id'] }}_btnReprint" class="btn btn-primary btn-sm btnReprint" type="submit" value="{{ v['id'] }}"  
+                        <button id="{{ v['iou_id'] }}_btnReprint" class="btn btn-primary btn-sm btnReprint" type="submit" value="{{ v['iou_id'] }}"  
                         name="submit_button" >Reprint</button>
                     </td>
                 </tr>
@@ -166,19 +171,74 @@
     });
     
     $(document).on("click", "#btnSaveProcess", function(event){
-        alert("Clicked");
+        //alert("Clicked");
+        id =  $("#mIdSubmit").val();
+        submit(id, 0, true);
+
     });
 
     function submit(id, qty, result) {
         if (result) {
-            var iou_qty = $("#" + id + "_iouqty").val();
-            var iou_comp = $("#" + id + "_ioucomp").val();
-            var rem_qty = Number(iou_qty) - Number(iou_comp);
-            alert(qty);
+            $('#processModal').modal('hide');
+            var err_msg = "", status= "";
+            var iou_qty = Number($("#" + id + "_iouqty").val());
+            var iou_comp = Number($("#" + id + "_ioucomp").val());
+            var rem_qty = iou_qty - iou_comp;
+            var add_qty = $("#mfillVal").val();
+            var uf_close = $("#cbIOU").prop("checked");
+            var user = $.trim($(".curr_user").text());
+
+            if ($.isNumeric(add_qty) != true) {
+                err_msg = "A valid numeric value must be entered";
+            }
+            else if (Number(add_qty) > rem_qty) {
+                err_msg = "You cannot add more than the remaining qty for the IOU"
+            }
+            else if (uf_close && add_qty >= rem_qty) {
+                err_msg = "Only check box if qty to send is less than the remaining qty"
+            }
+            else {
+                add_qty = Number($("#mfillVal").val());
+            }
+
+            if (err_msg != ""){
+                openDialog(id, err_msg);
+                return false;
+            }
+
+            if (uf_close) {
+                status = 'IC'
+            }
+            else if (add_qty == rem_qty){
+                status = 'IF'
+            }
+            else if (add_qty < rem_qty){
+                status = 'IP'
+            }
+            
+            console.log(iou_qty, iou_comp, rem_qty, add_qty, user);
+            
+            $.ajax({
+                type: "POST",
+                url: "{{url_for('iou_processing')}}",
+                dataType: 'json',
+                data: {
+                    'iou_id': id
+                    ,'add_qty': add_qty
+                    ,'status': status
+                    ,'user': user
+                },
+                async: false,
+                success: function (data) {
+                },
+                complete: function (data) {
+                    location.reload();
+                }
+            });
+            
+            
             //$("#valSubmit").val(id);
             //$("#processIOU").submit();
-            console.log("Result: " + result);
-            //not_processing = false;
             return true
         }
         else{
@@ -193,14 +253,14 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Close IOU</h5>
+                <h5 class="modal-title">Close IOU or add completed quantity</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
                 <p>
-                Do you want to close the IOU for <span id="mMedication"></span><br />
+                <span id="mMedication"></span><br />
                 Total IOU Quantity: <span id="mIouQty"></span> with <span id="mIouComp"></span> Filled
                 </p>
 
@@ -219,7 +279,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" id="btnSaveProcess">Save changes</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
