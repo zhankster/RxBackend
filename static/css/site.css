@@ -6,6 +6,18 @@
     background-color: red;
 }
 
+.caution{
+    background-color:yellow;
+}
+
+.incomplete{
+    background-color: antiquewhite;
+}
+
+.good{
+    background-color: green;
+}
+
 .set{
     /* background-color:  #f6d0b4 ; */
     background-color: #f13618;

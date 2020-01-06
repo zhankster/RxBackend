@@ -449,12 +449,12 @@ def processing():
 
                 facility_items.append(d)
                 #End Get Facilities HDA
-        cur1.execute("""EXEC [dbo].get_batch_total_cost ?""", batch_id.replace(' ', ''))
-        row_batch = cur1.fetchall()
+        # cur1.execute("""EXEC [dbo].get_batch_total_cost ?""", batch_id.replace(' ', ''))
+        # row_batch = cur1.fetchall()
 
-        if len(row_batch) > 0:
-                for row in row_batch:
-                    bat_total = row.TOTAL_COST
+        # if len(row_batch) > 0:
+        #         for row in row_batch:
+        #             bat_total = row.TOTAL_COST
         else:
             error = 404
     #@@@@@@### END Facility data HDA-2019-09-24
@@ -558,7 +558,7 @@ def iou():
                     objects_list['KOP'][row.FIL_KOP]['patTotal'] = objects_list['KOP'][row.FIL_KOP]['patTotal'] + 1
                 objects_list['KOP'][row.FIL_KOP]['rxTotal'] = objects_list['KOP'][row.FIL_KOP]['rxTotal'] + 1
                 objects_list['KOP'][row.FIL_KOP][row.ID] = {'exception': row.EXCEPTION, 'name': row.NAME, 'id': row.ID, 'fil_id': row.FIL_ID, 'pat_id': row.PAT_ID, 'qty': round(
-                    row.QTY,2), 'drg_strength': row.DRG_STRENGTH, 'drg_name': row.DRG_DNAME, 'status': row.STATUS, 'iou_qty':round(row.IOU_QTY,2), 'fill_date' : str(row.FIL_DATE).replace(" 00:00:00", "")}
+                    row.QTY,2), 'drg_strength': row.DRG_STRENGTH, 'drg_name': row.DRG_DNAME, 'status': row.STATUS, 'stat_desc': row.STAT_DESC,'iou_qty':round(row.IOU_QTY,2), 'fill_date' : str(row.FIL_DATE).replace(" 00:00:00", "")}
         else:
             error = 404
     elif request.method == "POST":
@@ -614,40 +614,54 @@ def iou_processing():
     print(session['role'])
     conn = pyodbc.connect(RX_CONNECTION_STRING)
     cur = conn.cursor()
+    io = {}
     iou_items = []
+    iou_id = 0
     bg = '#FFFFFF'
 
     if request.method == "GET":
         cur.execute("""EXEC dbo.batch_detail_for_completing_iou """)
         rows = cur.fetchall()
 
+        i = collections.OrderedDict()
         if len(rows) > 0:
+            iou_cache = {}
             for row in rows:
-                i = collections.OrderedDict()
-                i['id'] = row.ID
-                i['iou_id'] = row.IOU_ID
-                i['del_bat_id'] = row.DEL_BAT_ID
-                i['fill_id'] = row.FIL_ID
-                i['fill_date'] = str(row.FIL_DATE).replace(" 00:00:00", "")
-                i['kop'] = row.FIL_KOP
-                i['facility'] = row.FACILITY
-                i['pat_id'] = row.PAT_ID
-                i['name'] = row.NAME
-                i['drg_dname'] = row.DRG_DNAME
-                i['drg_strength'] = row.DRG_STRENGTH
-                i['fill_qty'] = round(row.FILL_QTY,2)
-                i['iou_date'] = row.IOU_DATE
-                i['color'] = row.COLOR
-                i['pharm_tech'] = row.PHARM_TECH
-                i['initials'] = row.INTIALS
-                i['iou_qty'] = round(row.IOU_QTY,2)
-                i['iou_comp'] = round(row.IOU_COMP,2)
-                i['status'] = row.STATUS
-                i['stat_desc'] = row.STAT_DESC
-                iou_items.append(i)
+                # if 'IOU' not in io:
+                # io = collections.OrderedDict()
+                if 'IOU' not in io:
+                    io['IOU'] = collections.OrderedDict()
+                if row.IOU_ID not in io['IOU']:
+                    io['IOU'][row.IOU_ID] = collections.OrderedDict()
+                io['IOU'][row.IOU_ID]['iou_id'] = row.IOU_ID
+                io['IOU'][row.IOU_ID]['id'] = row.ID
+                io['IOU'][row.IOU_ID]['del_bat_id'] = row.DEL_BAT_ID
+                io['IOU'][row.IOU_ID]['fill_id'] = row.FIL_ID
+                io['IOU'][row.IOU_ID]['fill_date'] = str(row.FIL_DATE).replace(" 00:00:00", "")
+                io['IOU'][row.IOU_ID]['kop'] = row.FIL_KOP
+                io['IOU'][row.IOU_ID]['facility'] = row.FACILITY
+                io['IOU'][row.IOU_ID]['pat_id'] = row.PAT_ID
+                io['IOU'][row.IOU_ID]['name'] = row.NAME
+                io['IOU'][row.IOU_ID]['drg_dname'] = row.DRG_DNAME
+                io['IOU'][row.IOU_ID]['drg_strength'] = row.DRG_STRENGTH
+                io['IOU'][row.IOU_ID]['fill_qty'] = round(row.FILL_QTY,2)
+                io['IOU'][row.IOU_ID]['iou_date'] = row.IOU_DATE
+                io['IOU'][row.IOU_ID]['color'] = row.COLOR
+                io['IOU'][row.IOU_ID]['pharm_tech'] = row.PHARM_TECH
+                io['IOU'][row.IOU_ID]['initials'] = row.INTIALS
+                io['IOU'][row.IOU_ID]['iou_qty'] = round(row.IOU_QTY,2)
+                io['IOU'][row.IOU_ID]['iou_comp'] = round(row.IOU_COMP,2)
+                io['IOU'][row.IOU_ID]['status'] = row.STATUS
+                io['IOU'][row.IOU_ID]['stat_desc'] = row.STAT_DESC
+                io['IOU'][row.IOU_ID][row.TRANS_ID] = {'username' : row.USER_NAME, 'trans_type': row.TRANS_TYPE, 'add_qty' : round(row.ADD_QTY, 2), 'trans_date': row.TRANS_DATE}
+                # else:
+                #     if not 'details' in io: 
+                #         io['details'] = collections.OrderedDict()                       
+                #         io['details'][row.TRANS_ID] = ({'trans_type': row.TRANS_TYPE})
+                # iou_items.append(io)
 
         else:
-            iou_items = []
+            iou_items = {}
             
     elif request.method == "POST":  
         sql = "{CALL dbo.close_iou_request (?, ?, ?,?)}"
@@ -664,7 +678,7 @@ def iou_processing():
         iou_items = []
         
 
-    return render_template('iou_processing.html', iou_items=iou_items, update_role = write_role)
+    return render_template('iou_processing.html', iou_items=io, update_role = write_role)
 
 @app.route("/iou_reprint", methods=["POST"])
 @login_required

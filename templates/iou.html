@@ -65,9 +65,6 @@
 					<button class="btn btn-link" style="text-decoration: none !important;font-weight: bold; color:#254878" type="button" data-toggle="collapse" data-target="#collapse_{{kop}}" aria-expanded="true" aria-controls="collapseOne">
 					{{ kop }} &nbsp;&nbsp; TOTAL PATIENTS: {{rx['patTotal']}} &nbsp; RX COUNT: {{rx['rxTotal']}} 	
 					</button>
-					<!-- <span  style="position:relative;float:right;vertical-align:middle;">
-						<input type="checkbox" id="{{kop}}_toggle" name="{{kop}}_toggle" checked="true" onclick="selectAll('{{kop}}');">
-					</span>						 -->
 				</h4>
 				
 			</div>
@@ -103,13 +100,14 @@
 									{{ v['qty'] }} 
 									<input type="hidden" value="{{v['qty']}}" id="{{ v['id'] }}_qty" name="{{ v['id'] }}_qty"/>
 								</td>
-								<td class="{% if 'NA' in v['status'] %}na{% else %}set{% endif %}">
-									{{ v['status'] }}
+								<td class="{% if 'NA' in v['status'] %}na {% elif 'IO' in v['status'] %}error{% elif 'IP' in v['status'] %}caution
+										{% elif 'IF' in v['status'] %}good{% elif 'IC' in v['status'] %}incomplete
+										{% elif 'IS' in v['status'] %}incomplete{% endif %}">
+									{{ v['stat_desc'] }}
 									<input type="hidden" value="{{v['status']}}" id="{{ v['id'] }}_status" name="{{ v['id'] }}_status"/>
 								</td>
 								<td>
 									<input class="{{kop}}_check" type="checkbox" 
-									{% if 'NA' not in v['status'] %}disabled{% endif %} 
 									value="{{ v['id'] }}" name="cbfil" id="{{ v['id'] }}_present" id="{{ v['id'] }}_present"/>
 								</td>
 								<td>

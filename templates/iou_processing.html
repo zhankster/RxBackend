@@ -17,7 +17,7 @@
   </div>
   <div class="row">
       <form name="processIOU" id="processIOU" action="{{url_for('iou_processing')}}" method="POST">
-        <table class="table table-striped">
+        <table class="table table-responsive table-hover">
             <thead class="thead">
                 <tr>
                     <th scope="col">Facility</th>
@@ -32,14 +32,12 @@
                     <th scope="col">IOU Qty</th>
                     <th scope="col">IOU Fill</th>
                     <th scope="col" colspan="2">Process IOU</th>
-                    <input type="hidden" value"{{ current_user.id }}" name="current_user" id="current_user"/>
-                    <input type="hidden" value"test" name="t" id="t"/>
                 </tr>
             </thead>
             <tbody>
-                {% for v in iou_items %}
-                <tr>
-                    <td>
+                {% for iou, v in iou_items['IOU'].items() %}
+                <tr style="background-color: #fbfbfe">
+                    <td class="clickable" data-toggle="collapse" data-target="#{{ v['iou_id'] }}_details" aria-expanded="true" aria-controls="{{ v['iou_id'] }}_details">
                         {{ v['facility'] }}
                         <input type="hidden" value="{{v['facility']}}" id="{{ v['iou_id'] }}_facility" name="{{ v['iou_id'] }}_facility"/>
                     </td>
@@ -75,9 +73,6 @@
                     </td>
                     <td>
                         {{ v['stat_desc'] }}
-
-
-
                         <input type="hidden" value="{{v['stat_desc']}}" id="{{ v['iou_id'] }}_statdesc" name="{{ v['iou_id'] }}_statdesc"/>
                     </td>
                     <td>
@@ -100,6 +95,24 @@
                         name="submit_button" >Reprint</button>
                     </td>
                 </tr>
+                <tbody id="{{ v['iou_id'] }}_details" class="collapse">
+                        <tr>
+                            <th>Type</th>
+                            <th>User</th>
+                            <th>Qty</th>
+                            <th>Date</th>
+                        </tr>
+                    {% for k,v in v.items() %}
+                    {%if k is number%}
+                    <tr style="background-color: white;">
+                        <td>{{ v['trans_type'] }}</td>
+                        <td>{{ v['username'] }}</td>
+                        <td>{{ v['add_qty'] }}</td>
+                        <td>{{ v['trans_date'] }}</td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
                 {% endfor %}							
             </tbody>
         </table>
