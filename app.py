@@ -449,12 +449,12 @@ def processing():
 
                 facility_items.append(d)
                 #End Get Facilities HDA
-        # cur1.execute("""EXEC [dbo].get_batch_total_cost ?""", batch_id.replace(' ', ''))
-        # row_batch = cur1.fetchall()
+        cur1.execute("""EXEC [dbo].get_batch_total_cost ?""", batch_id.replace(' ', ''))
+        row_batch = cur1.fetchall()
 
-        # if len(row_batch) > 0:
-        #         for row in row_batch:
-        #             bat_total = row.TOTAL_COST
+        if len(row_batch) > 0:
+                for row in row_batch:
+                    bat_total = row.TOTAL_COST
         else:
             error = 404
     #@@@@@@### END Facility data HDA-2019-09-24
@@ -493,6 +493,8 @@ def processing():
 
                         if request.form[key] != '':
                             complete = 0
+                            
+                            
                             params = (int(id), (request.form['batch_id']), int(
                                 request.form[key]))
                             cur.execute(
@@ -569,6 +571,8 @@ def iou():
         user = request.form["username"]
         facility = request.form["facility"]
         batch_id = request.form["batch_id"]
+        ship = request.form["ship"]
+        tech = request.form["tech"]
         # print(fills)
         for i in fills:
             key = i + "_iouqty"
@@ -581,7 +585,7 @@ def iou():
                 iou_fil_date = request.form[i + "_filldate"]
                 logo = "../static/images/ihs-pharmacy-logo.png" 
                 
-                rendered = render_template('iou_delivery.html', batch=batch_id, facility = facility, medication = iou_medication, name = iou_name, org_qty = iou_org_qty, iou_qty = iou_qty, pharm_tech = user, fill_date = iou_fil_date, logo = logo  )
+                rendered = render_template('iou_delivery.html', batch=batch_id, facility = facility, medication = iou_medication, name = iou_name, org_qty = iou_org_qty, iou_qty = iou_qty, pharm_tech = tech, fill_date = iou_fil_date, logo = logo, ship = ship, tech = tech, iou_user = user  )
                 iou_filename = "iou_" + i + ".html"
                 iou_files.append("temp/" + iou_filename)
                 with open("temp/" + iou_filename,"wb") as fo:
@@ -653,15 +657,11 @@ def iou_processing():
                 io['IOU'][row.IOU_ID]['iou_comp'] = round(row.IOU_COMP,2)
                 io['IOU'][row.IOU_ID]['status'] = row.STATUS
                 io['IOU'][row.IOU_ID]['stat_desc'] = row.STAT_DESC
+                io['IOU'][row.IOU_ID]['ship'] = row.SHIP
+                io['IOU'][row.IOU_ID]['tech'] = row.TECH
                 io['IOU'][row.IOU_ID][row.TRANS_ID] = {'username' : row.USER_NAME, 'trans_type': row.TRANS_TYPE, 'add_qty' : round(row.ADD_QTY, 2), 'trans_date': row.TRANS_DATE}
-                # else:
-                #     if not 'details' in io: 
-                #         io['details'] = collections.OrderedDict()                       
-                #         io['details'][row.TRANS_ID] = ({'trans_type': row.TRANS_TYPE})
-                # iou_items.append(io)
-
         else:
-            iou_items = {}
+            io = None
             
     elif request.method == "POST":  
         sql = "{CALL dbo.close_iou_request (?, ?, ?,?)}"
@@ -693,11 +693,13 @@ def iou_reprint():
     org_qty = request.form['org_qty']
     iou_qty = request.form['iou_qty']
     user = request.form['user']
+    ship = request.form['ship']
+    tech = request.form['tech']
     fill_date = request.form['fill_date'] 
     logo = "../static/images/ihs-pharmacy-logo.png"  
-    print(id,batch,facility,medication,name,kop, org_qty,iou_qty, user, fill_date)
+    print(id,batch,facility,medication,name,kop, org_qty,iou_qty, user, fill_date,ship,tech)
     # return id
-    rendered = render_template('iou_delivery.html', batch=batch, facility = facility, medication = medication, name = name, org_qty = org_qty, iou_qty = iou_qty, pharm_tech = user, fill_date = fill_date, logo=logo )
+    rendered = render_template('iou_delivery.html', batch=batch, facility = facility, medication = medication, name = name, org_qty = org_qty, iou_qty = iou_qty, pharm_tech = tech, fill_date = fill_date, logo=logo, ship = ship, tech = tech, iou_user = user )
     iou_filename = "iou_" + iou_id + ".html"
     iou_files.append("temp/" + iou_filename)
     with open("temp/" + iou_filename,"wb") as fo:
@@ -705,9 +707,20 @@ def iou_reprint():
     
     pdfkit.from_file(iou_files, "static/pdf/" + iou_id + ".pdf", configuration=config)
 
-    return True
+    return 'True'
 
-
+@app.route("/iou_update", methods=["POST"])
+@login_required
+def iou_update():
+    conn = pyodbc.connect(RX_CONNECTION_STRING)
+    cur = conn.cursor()
+    sql = "{CALL dbo.update_ups_table_for_iou (?)}"
+    iou_id = request.form['id']
+    print(iou_id)
+    params = (int(iou_id))
+    cur.execute(sql, params)
+    conn.commit()
+    return 'True'
 
 @app.route("/rx/batch/<int:batch_id>", methods=["GET"])
 @login_required

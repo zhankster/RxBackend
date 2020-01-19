@@ -39,8 +39,8 @@ select * from BAT_RECONCILED
 select * from [dbo].[BAT_EXCEPTIONS]
 --truncate table [dbo].[BAT_IOU]
 --truncate table [dbo].[BAT_IOU_TRANS]
-select * from [dbo].[BAT_IOU]
-select * from [dbo].[BAT_IOU_TRANS]
+select * from [dbo].[BAT_IOU] order by CREATED desc
+select * from [dbo].[BAT_IOU_TRANS] order by TRANS_DATE desc
 select * from [dbo].[STATUS_CODES]
 
 --Mock records for RX Processing
@@ -122,6 +122,7 @@ INSERT INTO STATUS_CODES VALUES('IF', 'IOU', 'Filled')
 INSERT INTO STATUS_CODES VALUES('IC', 'IOU', 'User Closed')
 INSERT INTO STATUS_CODES VALUES('IS', 'IOU', 'System Closed')
 INSERT INTO STATUS_CODES VALUES('IP', 'IOU', 'Partial')
+INSERT INTO STATUS_CODES VALUES('IIV', 'IOU', 'Invalidated')
 --TRUNCATE TABLE STATUS_CODES
 SELECT *  FROM STATUS_CODES
 
@@ -153,3 +154,5 @@ FROM
 WHERE
 	a.username='hallen'
 	AND a.enabled = 1
+SELECT * INTO [UPS_Shipping].[dbo]._TO_UPS FROM [UPS_Shipping].[dbo].[TO_UPS]
+--EXEC update_ups_table_for_iou

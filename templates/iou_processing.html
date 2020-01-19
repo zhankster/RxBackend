@@ -1,5 +1,14 @@
 {% extends "base.html" %}
 {% block body %}
+<style>
+.btn-group-xs > .btn, .btn-xs {
+  padding: .4rem .375rem;
+  /*font-size: .875rem; */
+  font-size: .8rem; 
+  line-height: .55;
+  border-radius: .2rem;
+}
+</style>
 <script type="text/javascript">
 	var nav = document.getElementById("navIOUProcess");
 	nav.className += " active";
@@ -10,44 +19,52 @@
 <br/>
 <div class="container">
   <div class="row">
-    <div class="col">
-    	<h1 style="color:#254878;">IOU Process</h1>
-    	<br/>
+    <div class="col-6">
+        <h1 style="color:#254878;">IOU Process</h1>
+    </div>
+    <div class="col-6 d-flex align-items-end flex-column mt-auto" style="margin-bottom: 5px;">
+        <input type="text" id="txtSearch" name="txtSearch" size="16" placeholder="Search"/>
     </div>
   </div>
   <div class="row">
+    {% if iou_items != none %}
       <form name="processIOU" id="processIOU" action="{{url_for('iou_processing')}}" method="POST">
-        <table class="table table-responsive table-hover">
+        <table class="table table-sm table-responsive table-hover" id="tblMain">
             <thead class="thead">
                 <tr>
-                    <th scope="col">Facility</th>
+                    <th scope="col" colspan="3">Facility</th>
                     <th scope="col">Batch</th>
                     <th scope="col">KOP</th>
+                    <th scope="col">Ship</th>
                     <th scope="col">Name</th>
                     <th scope="col">Medication</th>
                     <th scope="col">Fill Qty</th>
                     <th scope="col">Fill Date</th>
-                    <th scope="col">Tech</th>
+                    <th scope="col">Created</th>
                     <th scope="col">Status</th>
                     <th scope="col">IOU Qty</th>
                     <th scope="col">IOU Fill</th>
-                    <th scope="col" colspan="2">Process IOU</th>
+                    <th scope="col" colspan="3">Process IOU</th>
                 </tr>
             </thead>
             <tbody>
                 {% for iou, v in iou_items['IOU'].items() %}
                 <tr style="background-color: #fbfbfe">
-                    <td class="clickable" data-toggle="collapse" data-target="#{{ v['iou_id'] }}_details" aria-expanded="true" aria-controls="{{ v['iou_id'] }}_details">
+                    <td class="clickable search" colspan="3" data-toggle="collapse" data-target="#{{ v['iou_id'] }}_details" aria-expanded="true" aria-controls="{{ v['iou_id'] }}_details">
                         {{ v['facility'] }}
                         <input type="hidden" value="{{v['facility']}}" id="{{ v['iou_id'] }}_facility" name="{{ v['iou_id'] }}_facility"/>
                     </td>
-                    <td>
+                    <td class="search">
                         {{ v['del_bat_id'] }}
                         <input type="hidden" value="{{v['del_bat_id']}}" id="{{ v['iou_id'] }}_delbatid" name="{{ v['iou_id'] }}_delbatid"/>
                     </td>
                     <td>
                         {{ v['kop'] }}
                         <input type="hidden" value="{{v['kop']}}" id="{{ v['iou_id'] }}_kop" name="{{ v['iou_id'] }}_kop"/>
+                    </td>
+                    <td>
+                        {{ v['ship'] }}
+                        <input type="hidden" value="{{v['ship']}}" id="{{ v['iou_id'] }}_ship" name="{{ v['iou_id'] }}_ship"/>
                     </td>
                     <td>
                         {{ v['name'] }}
@@ -69,7 +86,8 @@
                     <td>
                         {{ v['initials'] }}
                         <input type="hidden" value="{{v['initials']}}" id="{{ v['iou_id'] }}_initials" name="{{ v['iou_id'] }}_initials"/>
-                        <input type="hidden" value="{{v['pharm_tech']}}" id="{{ v['iou_id'] }}_pharmtech" name="{{ v['iou_id'] }}_initials"/>
+                        <input type="hidden" value="{{v['pharm_tech']}}" id="{{ v['iou_id'] }}_pharmtech" name="{{ v['iou_id'] }}_pharmtech"/>
+                        <input type="hidden" value="{{v['tech']}}" id="{{ v['iou_id'] }}_tech" name="{{ v['iou_id'] }}_tech"/>
                     </td>
                     <td>
                         {{ v['stat_desc'] }}
@@ -87,12 +105,16 @@
                     <td>
                         <button id="{{ v['iou_id'] }}_btnClear"
                         {{ update_role }}
-                        class="btn btn-primary btn-sm btnFormSubmit" type="button" value="{{ v['iou_id'] }}"  
+                        class="btn btn-primary btn-xs btnFormSubmit" type="button" value="{{ v['iou_id'] }}"  
                         name="clear_button" >Close</button>
                     </td>
                     <td>
-                        <button id="{{ v['iou_id'] }}_btnReprint" class="btn btn-primary btn-sm btnReprint" type="submit" value="{{ v['iou_id'] }}"  
+                        <button id="{{ v['iou_id'] }}_btnReprint" class="btn btn-primary btn-xs btnReprint" type="submit" value="{{ v['iou_id'] }}"  
                         name="submit_button" >Reprint</button>
+                    </td>
+                    <td>
+                        <button id="{{ v['iou_id'] }}_btnUpdate" class="btn btn-primary btn-xs btnUpdate" type="submit" value="{{ v['id'] }}"  
+                        name="update_button">Update</button>
                     </td>
                 </tr>
                 <tbody id="{{ v['iou_id'] }}_details" class="collapse">
@@ -100,7 +122,7 @@
                             <th>Type</th>
                             <th>User</th>
                             <th>Qty</th>
-                            <th>Date</th>
+                            <th colspan="4">Date</th>
                         </tr>
                     {% for k,v in v.items() %}
                     {%if k is number%}
@@ -108,12 +130,15 @@
                         <td>{{ v['trans_type'] }}</td>
                         <td>{{ v['username'] }}</td>
                         <td>{{ v['add_qty'] }}</td>
-                        <td>{{ v['trans_date'] }}</td>
+                        <td colspan="4">{{ v['trans_date'] }}</td>
                     </tr>
                     {% endif %}
                     {% endfor %}
                 </tbody>
-                {% endfor %}							
+                
+                {% endfor %}
+                {% endif %}
+							
             </tbody>
         </table>
         <input type="hidden" value="" name="valSubmit" id="valSubmit" />
@@ -122,6 +147,36 @@
 </div> 	
 <script type="text/javascript">
 
+    $(document).ready(function(){
+        $("#txtSearch").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+
+            $("#tblMain tr").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+            
+        });
+
+        
+        $('#cbIOU').change(function () {
+            if ($(this).is(':checked')) {
+                $("#cbInval").attr("disabled", "disabled"); 
+            } else {
+                $("#cbInval").removeAttr("disabled"); 
+            }
+        });
+
+        $('#cbInval').change(function () {
+            if ($(this).is(':checked')) {
+                $("#mfillVal").attr("disabled", "disabled"); 
+                $("#cbIOU").attr("disabled", "disabled"); 
+            } else {
+                $("#mfillVal").removeAttr("disabled"); 
+                $("#cbIOU").removeAttr("disabled"); 
+            }
+        });
+
+      });
 
     function openDialog(id, err){
         $("#mMedication").text("[" + $("#" + id + "_drgdname").val() + " - " + $("#" + id + "_drgstrength").val() + "]");
@@ -131,6 +186,11 @@
         $("#mfillVal").val(rem_qty);
         $("#mIdSubmit").val(id);
         $("#pError").text(err);
+        $("#cbIOU").prop("checked", false);
+        $("#cbIOU").removeAttr("disabled"); 
+        $("#cbInval").prop("checked", false);
+        $("#cbInval").removeAttr("disabled"); 
+        $("#mfillVal").removeAttr("disabled"); 
 
         $('#processModal').modal('show');
     }
@@ -153,7 +213,9 @@
         iou_qty = $("#" + id + "_iouqty").val();
         user = $("#" + id + "_pharmtech").val();
         fill_date = $("#" + id + "_filldate").val();
-        console.log(id, batch, facility, medication, org_qty, iou_qty,fill_date);
+        ship = $("#" + id + "_ship").val();
+        tech = $("#" + id + "_tech").val();
+        console.log(id, batch, facility, medication, org_qty, iou_qty,fill_date,ship,tech);
         $.ajax({
             type: "POST",
             url: "{{url_for('iou_reprint')}}",
@@ -169,6 +231,9 @@
                 ,'iou_qty' : iou_qty
                 ,'fill_date' : fill_date
                 ,'user' : user
+                ,'ship' : ship
+                ,'tech' : tech
+
             },
             async: false,
             success: function (data) {
@@ -182,6 +247,30 @@
         });
         e.preventDefault();
     });
+
+$('.btnUpdate').click(function(e) {
+        id = $(this).val();
+        console.log(id);
+        $.ajax({
+            type: "POST",
+            url: "{{url_for('iou_update')}}",
+            dataType: 'json',
+            data: {
+                'id' : id
+            },
+            async: false,
+            success: function (data) {
+                $.each(data, function (index, item) {
+                });
+            },
+            complete: function (data) {
+                location.reload();
+            }
+
+        });
+        e.preventDefault();
+    });
+
     
     $(document).on("click", "#btnSaveProcess", function(event){
         //alert("Clicked");
@@ -199,6 +288,7 @@
             var rem_qty = iou_qty - iou_comp;
             var add_qty = $("#mfillVal").val();
             var uf_close = $("#cbIOU").prop("checked");
+            var uf_invalid = $("#cbInval").prop("checked");
             var user = $.trim($(".curr_user").text());
 
             if ($.isNumeric(add_qty) != true) {
@@ -219,15 +309,22 @@
                 return false;
             }
 
+            //alert(uf_invalid);
+
             if (uf_close) {
-                status = 'IC'
+                status = 'IC';
+            }           
+            else if (uf_invalid) {
+                status = 'IIV';
+                add_qty = 0;
             }
             else if (add_qty == rem_qty){
-                status = 'IF'
+                status = 'IF';
             }
             else if (add_qty < rem_qty){
-                status = 'IP'
+                status = 'IP';
             }
+            else 
             
             console.log(iou_qty, iou_comp, rem_qty, add_qty, user);
             
@@ -284,6 +381,10 @@
 
                 <p>
                     Close without completing <input  type='checkbox' id='cbIOU' name='cbIOU' />
+                </p>
+                
+                <p>
+                    Invalidate unnecessary IOU <input  type='checkbox' id='cbInval' name='cbInval' />
                 </p>
 
                 <p style='color:red; font-weight:bold' id="pError">
