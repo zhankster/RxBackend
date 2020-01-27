@@ -107,6 +107,7 @@
                         {{ update_role }}
                         class="btn btn-primary btn-xs btnFormSubmit" type="button" value="{{ v['iou_id'] }}"  
                         name="clear_button" >Close</button>
+                        <input type="hidden" value="{{v['fill_id']}}" id="{{ v['iou_id'] }}_ioufill" name="{{ v['iou_id'] }}_ioufill"/>
                     </td>
                     <td>
                         <button id="{{ v['iou_id'] }}_btnReprint" class="btn btn-primary btn-xs btnReprint" type="submit" value="{{ v['iou_id'] }}"  
@@ -183,6 +184,7 @@
         $("#mIouQty").text($("#" + id + "_iouqty").val());
         $("#mIouComp").text($("#" + id + "_ioucomp").val());
         var rem_qty = Number($("#" + id + "_iouqty").val()) - Number($("#" + id + "_ioucomp").val());
+        var fill_id = $("#" + id + "_ioufill").val();
         $("#mfillVal").val(rem_qty);
         $("#mIdSubmit").val(id);
         $("#pError").text(err);
@@ -191,8 +193,30 @@
         $("#cbInval").prop("checked", false);
         $("#cbInval").removeAttr("disabled"); 
         $("#mfillVal").removeAttr("disabled"); 
+        console.log(fill_id, rem_qty);
 
-        $('#processModal').modal('show');
+        $.ajax({
+            type: "POST",
+            url: "{{url_for('iou_cost')}}",
+            dataType: 'json',
+            data: {
+                'id' : fill_id
+                ,'qty' : rem_qty
+            },
+            async: false,
+            success: function (data) {
+                if (Number(data) >= 1000.00) {
+                    $("#iCost").html("*** Total Cost: $" + data + " ***");
+                }
+                else {
+                    $("#iCost").html("");
+                }
+            },
+            complete: function (data) {
+                $('#processModal').modal('show');
+            }
+
+        });
     }
 
     $('.btnFormSubmit').click(function(e) {
@@ -309,7 +333,6 @@ $('.btnUpdate').click(function(e) {
                 return false;
             }
 
-            //alert(uf_invalid);
 
             if (uf_close) {
                 status = 'IC';
@@ -324,9 +347,8 @@ $('.btnUpdate').click(function(e) {
             else if (add_qty < rem_qty){
                 status = 'IP';
             }
-            else 
             
-            console.log(iou_qty, iou_comp, rem_qty, add_qty, user);
+            console.log(id, iou_qty, status, iou_comp, rem_qty, add_qty, user);
             
             $.ajax({
                 type: "POST",
@@ -346,14 +368,10 @@ $('.btnUpdate').click(function(e) {
                 }
             });
             
-            
-            //$("#valSubmit").val(id);
-            //$("#processIOU").submit();
             return true
         }
         else{
             console.log("Result: " + result);
-            //not_processing = false;
             return false
         }
     }
@@ -392,6 +410,7 @@ $('.btnUpdate').click(function(e) {
                 <input type="hidden" id="mIdSubmit" />
             </div>
             <div class="modal-footer">
+                <span class="mr-auto" style='color:red; font-weight:bold' id="iCost"></span>
                 <button type="button" class="btn btn-primary" id="btnSaveProcess">Save changes</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
             </div>

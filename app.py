@@ -670,7 +670,6 @@ def iou_processing():
         user = request.form['user']
         status = request.form['status']
         params = (int(id), Decimal(iou_qty),user, status)
-        print("Post")
         cur.execute(sql, params)
         conn.commit()
         return redirect(url_for("iou_processing"))
@@ -721,6 +720,22 @@ def iou_update():
     cur.execute(sql, params)
     conn.commit()
     return 'True'
+
+@app.route("/iou_cost", methods=["POST"])
+@login_required
+def iou_cost():
+    conn = pyodbc.connect(RX_CONNECTION_STRING)
+    cur = conn.cursor()
+    sql = "{CALL dbo.get_iou_total_cost (?, ?)}"
+    iou_id = request.form['id']
+    qty = request.form['qty'] 
+    print(iou_id)
+    params = (int(iou_id), float(qty))
+    cur.execute(sql, params)
+    for row in cur.fetchall():
+        cost = str(row[0])
+    
+    return cost
 
 @app.route("/rx/batch/<int:batch_id>", methods=["GET"])
 @login_required

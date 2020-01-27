@@ -156,3 +156,14 @@ WHERE
 	AND a.enabled = 1
 SELECT * INTO [UPS_Shipping].[dbo]._TO_UPS FROM [UPS_Shipping].[dbo].[TO_UPS]
 --EXEC update_ups_table_for_iou
+
+ALTER PROC	[dbo].[get_iou_total_cost]
+@IOU_ID INT, @QTY DECIMAL(10,4)
+AS
+BEGIN
+SELECT 
+20 * @QTY AS EXT_COST
+
+END
+
+[dbo].[get_iou_total_cost] 10, 84
