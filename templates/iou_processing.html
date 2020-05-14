@@ -14,13 +14,27 @@
 	nav.className += " active";
     nav.style.fontWeight = "bold";
 
+    	// Refresh Handler
+	function Poll( t ) {
+		setTimeout("location.reload(true);", t);
+    }
+	
+	$(document).ready(function(){
+        Poll(600000);
+    });
+    
+ 
 </script>
 <br/>
 <br/>
 <div class="container">
   <div class="row">
-    <div class="col-6">
+    <div class="col-3">
         <h1 style="color:#254878;">IOU Process</h1>
+    </div>
+    <div class="col-3">
+        <span class="font-weight-bold">Updated on :</span><br /> 
+         <span id="sUpdate" class="font-weight-bold"> </span>  
     </div>
     <div class="col-6 d-flex align-items-end flex-column mt-auto" style="margin-bottom: 5px;">
         <input type="text" id="txtSearch" name="txtSearch" size="16" placeholder="Search"/>
@@ -158,6 +172,8 @@
             
         });
 
+        let dCurrent= new Date();
+        $("#sUpdate").text(dCurrent.toLocaleString());
         
         $('#cbIOU').change(function () {
             if ($(this).is(':checked')) {

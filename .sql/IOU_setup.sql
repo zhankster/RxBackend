@@ -167,3 +167,4 @@ SELECT
 END
 
 [dbo].[get_iou_total_cost] 10, 84
+78 28 IF 0 28 28 hanka

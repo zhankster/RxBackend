@@ -16,6 +16,7 @@ from datetime import datetime
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import urllib
+import db_ship as dbs
 
 ## GLOBALS
 UPS_CONNECTION_STRING='DRIVER={SQL Server};SERVER=localhost;DATABASE=UPS_Shipping;Trusted_Connection=yes'
@@ -244,15 +245,15 @@ def get_batch_summary(batch_id):
     rows = cur.fetchall()
     
     for row in rows: 
-        if not objects_list.has_key('batch_id'):
+        if 'batch_id' not in objects_list:
             objects_list['batch_id'] = row.DEL_BAT_ID
             objects_list['color'] = row.COLOR
             objects_list['facility'] = row.FACILITY
             objects_list['tech'] = row.TECH
             objects_list['ship'] = row.SHIP
-        if not objects_list.has_key('KOP'):
+        if 'KOP' not in objects_list:
             objects_list['KOP'] = collections.OrderedDict()
-        if not objects_list['KOP'].has_key(row.FIL_KOP):
+        if row.FIL_KOP not in objects_list['KOP']:
             objects_list['KOP'][row.FIL_KOP] = collections.OrderedDict()
             pat_cache[row.FIL_KOP] = []
             objects_list['KOP'][row.FIL_KOP]['rxTotal'] = 0
@@ -289,15 +290,15 @@ def pro_org():
         if len(rows) > 0:
             pat_cache = {}
             for row in rows: 
-                if not objects_list.has_key('batch_id'):
+                if 'batch_id' not in objects_list:
                     objects_list['batch_id'] = row.DEL_BAT_ID
                     objects_list['color'] = row.COLOR
                     objects_list['facility'] = row.FACILITY
                     objects_list['tech'] = row.TECH
                     objects_list['ship'] = row.SHIP
-                if not objects_list.has_key('KOP'):
+                if 'KOP' not in objects_list:
                     objects_list['KOP'] = collections.OrderedDict()
-                if not objects_list['KOP'].has_key(row.FIL_KOP):
+                if row.FIL_KOP not in objects_list['KOP']:
                     objects_list['KOP'][row.FIL_KOP] = collections.OrderedDict()
                     pat_cache[row.FIL_KOP] = []
                     objects_list['KOP'][row.FIL_KOP]['rxTotal'] = 0
@@ -385,7 +386,7 @@ def processing():
         if len(rows) > 0:
             pat_cache = {}
             for row in rows:
-                if not objects_list.has_key('batch_id'):
+                if 'batch_id' not in objects_list:
                     objects_list['batch_id'] = row.DEL_BAT_ID
                     objects_list['color'] = row.COLOR
                     objects_list['facility'] = row.FACILITY
@@ -393,9 +394,9 @@ def processing():
                     objects_list['ship'] = row.SHIP
                     # Added Facility code HDA-2019-09-24
                     fac_dcode = row.FAC_DCODE
-                if not objects_list.has_key('KOP'):
+                if 'KOP' not in objects_list:
                     objects_list['KOP'] = collections.OrderedDict()
-                if not objects_list['KOP'].has_key(row.FIL_KOP):
+                if row.FIL_KOP not in objects_list['KOP']:
                     objects_list['KOP'][row.FIL_KOP] = collections.OrderedDict()
                     pat_cache[row.FIL_KOP] = []
                     objects_list['KOP'][row.FIL_KOP]['rxTotal'] = 0
@@ -484,7 +485,7 @@ def processing():
             conn.commit()
 
             objects_list = []
-            for key, value in request.form.iteritems():
+            for key, value in request.form.items():
                 if len(key.split('_')) == 2:
                     id, field = key.split('_')
 
@@ -540,7 +541,7 @@ def iou():
         if len(rows) > 0:
             pat_cache = {}
             for row in rows:
-                if not objects_list.has_key('batch_id'):
+                if 'batch_id' not in objects_list:
                     objects_list['batch_id'] = row.DEL_BAT_ID
                     objects_list['color'] = row.COLOR
                     objects_list['facility'] = row.FACILITY
@@ -548,9 +549,9 @@ def iou():
                     objects_list['ship'] = row.SHIP
                     # Added Facility code HDA-2019-09-24
                     fac_dcode = row.FAC_DCODE
-                if not objects_list.has_key('KOP'):
+                if 'KOP' not in objects_list:
                     objects_list['KOP'] = collections.OrderedDict()
-                if not objects_list['KOP'].has_key(row.FIL_KOP):
+                if row.FIL_KOP not in objects_list['KOP']:
                     objects_list['KOP'][row.FIL_KOP] = collections.OrderedDict()
                     pat_cache[row.FIL_KOP] = []
                     objects_list['KOP'][row.FIL_KOP]['rxTotal'] = 0
@@ -567,25 +568,26 @@ def iou():
         sql = "{CALL dbo.put_batch_fill_for_iou (?, ?, ?)}"
         fills = request.form.getlist("cbfil")
         fills = [x.encode('UTF8') for x in fills]
-        # user = session['initials']
         user = request.form["username"]
         facility = request.form["facility"]
         batch_id = request.form["batch_id"]
         ship = request.form["ship"]
         tech = request.form["tech"]
-        # print(fills)
+        print(fills)
         for i in fills:
+            i = i.decode("utf-8")
             key = i + "_iouqty"
             if request.form[ key ] != '':
                 iou_kop = request.form[i + "_kop"]
                 iou_name = request.form[i + "_name"]
-                iou_medication = request.form[i + "_drgname"] + " - " + request.form[i + "_drgstrength"] 
+                iou_medication = request.form[i+ "_drgname"] + " - " + request.form[i + "_drgstrength"] 
                 iou_org_qty = request.form[i + "_qty"]
                 iou_qty = request.form[i + "_iouqty"]
                 iou_fil_date = request.form[i + "_filldate"]
                 logo = "../static/images/ihs-pharmacy-logo.png" 
                 
                 rendered = render_template('iou_delivery.html', batch=batch_id, facility = facility, medication = iou_medication, name = iou_name, org_qty = iou_org_qty, iou_qty = iou_qty, pharm_tech = tech, fill_date = iou_fil_date, logo = logo, ship = ship, tech = tech, iou_user = user  )
+                rendered = rendered.encode()
                 iou_filename = "iou_" + i + ".html"
                 iou_files.append("temp/" + iou_filename)
                 with open("temp/" + iou_filename,"wb") as fo:
@@ -699,6 +701,7 @@ def iou_reprint():
     print(id,batch,facility,medication,name,kop, org_qty,iou_qty, user, fill_date,ship,tech)
     # return id
     rendered = render_template('iou_delivery.html', batch=batch, facility = facility, medication = medication, name = name, org_qty = org_qty, iou_qty = iou_qty, pharm_tech = tech, fill_date = fill_date, logo=logo, ship = ship, tech = tech, iou_user = user )
+    rendered = rendered.encode()
     iou_filename = "iou_" + iou_id + ".html"
     iou_files.append("temp/" + iou_filename)
     with open("temp/" + iou_filename,"wb") as fo:
@@ -780,7 +783,7 @@ def pre_processing():
             if len(rows) > 0:
                 pat_cache = {}
                 for row in rows: 
-                    if not objects_list.has_key('batch_id'):
+                    if 'batch_id' not in objects_list:
                         objects_list['batch_id'] = row.DEL_BAT_ID
                         objects_list['color'] = row.COLOR
                         objects_list['facility'] = row.FACILITY
@@ -788,9 +791,9 @@ def pre_processing():
                         objects_list['ship'] = row.SHIP
                         objects_list['fil_date'] = row.FIL_DATE
                     
-                    if not objects_list.has_key('KOP'):
+                    if 'KOP' not in objects_list:
                         objects_list['KOP'] = collections.OrderedDict()
-                    if not objects_list['KOP'].has_key(row.FIL_KOP):
+                    if row.FIL_KOP not in objects_list['KOP']:
                         objects_list['KOP'][row.FIL_KOP] = collections.OrderedDict()
                         pat_cache[row.FIL_KOP] = []
                         objects_list['KOP'][row.FIL_KOP]['rxTotal'] = 0
@@ -806,7 +809,7 @@ def pre_processing():
             error=404
     elif request.method == "POST":    
         sql = "{CALL dbo.put_pre_processed_batch (?, ?, ?)}"
-        params = (request.form['batch_id'], session['initials'], request.form['fil_date'])        
+        params = (request.form['batch_id'].strip(), session['initials'], request.form['fil_date'])        
         cur.execute(sql, params)
         conn.commit()
         
@@ -918,9 +921,9 @@ def facility_batches_to_reconcile():
         data = {}
         
         for row in rows:
-            if not data.has_key(row.FAC_DCODE):
+            if row.FAC_DCODE not in data:
                 data[row.FAC_DCODE] = {}
-            if not data[row.FAC_DCODE].has_key(row.DEL_BAT_ID):
+            if row.DEL_BAT_ID not in data[row.FAC_DCODE]:
                 
                 data[row.FAC_DCODE][row.DEL_BAT_ID] = {'completed': row.COMPLETED, 'reconciled': row.RECONCILED, 'overrides': [], 'resolved': row.RESOLVED}
         
@@ -1000,7 +1003,8 @@ def admin_user_manager():
             enabled=0
             password=""
             
-            if request.form.has_key('enabled'):
+            # if request.form.has_key('enabled'):
+            if 'enabled' in request.form:
                 enabled=1
             if len(request.form['inputPassword']) > 0:
                 password=generate_password_hash(request.form['inputPassword'])
@@ -1013,7 +1017,7 @@ def admin_user_manager():
             conn.commit()
         else:
             enabled=0
-            if request.form.has_key('enabled'):
+            if 'enabled' in request.form:
                 enabled=1
             sql = "{CALL put_user (?, ?, ?, ?, ?)}" 
             params = ((request.form['inputUsername'], generate_password_hash(request.form['inputPassword']), request.form['selRole'], enabled, request.form['inputInitals']))			
@@ -1200,7 +1204,7 @@ def admin_exception_manager():
     elif request.method == "POST":				
         objects_list = []		
         
-        for key, value in request.form.iteritems():	
+        for key, value in request.form.items():	
             if len(key.split('_')) == 2:
                 id, field = key.split('_')				
                 if (field == 'drgname') and (request.form[key] != ''):
@@ -1302,6 +1306,68 @@ def admin_batch_viewer():
         return redirect(url_for('pending'))
     
     return render_template('admin/batch_viewer.html')
+
+@app.route("/admin/iou_notify", methods=["GET", "POST"])
+@login_required
+def admin_iou_notify():
+    if session['role'] != 'Administrator':
+        return redirect(url_for('pending'))
+    
+    conn = pyodbc.connect(RX_CONNECTION_STRING)
+    cur = conn.cursor()
+    sql = dbs.get_fac_alt()
+    print(sql)
+    cur.execute(sql)
+    rows = cur.fetchall()
+    
+    fac_alt = []
+    for row in rows:
+        d = collections.OrderedDict()
+        d['code'] = row.DCODE
+        d['name'] = row.DNAME
+        d['email'] = row.IOU_EMAIL
+        d['notify'] = row.IOU_NOTIFY
+        d['group'] = row.MNG
+        
+        fac_alt.append(d)
+    
+    sql = dbs.get_mng()
+    print(sql)
+    cur.execute(sql)
+    rows = cur.fetchall()
+    mng = []
+    for row in rows:
+        d = collections.OrderedDict()
+        d['codeG'] = row.CODE
+        d['desc'] = row.DESCRIPTION
+        d['email'] = row.EMAIL
+        d['notify'] = row.SEND
+
+        mng.append(d)
+        
+    if request.method == 'POST':
+        if request.form['p_type'] == 'facility':
+            params  = (( request.form['code'], request.form['email'] , request.form['group'] , int(request.form['notify'])  ))
+            if request.form['op-code'] == 'insert':
+                sql =  "{CALL dbo.put_fac_alt_notify (?, ?, ?, ? )}"
+                cur.execute(sql, params)
+                conn.commit()
+            else:
+                sql =  "{CALL dbo.update_fac_alt_notify (?, ?, ?, ? )}"
+                cur.execute(sql, params)
+                conn.commit()
+        elif  request.form['p_type'] == 'group':
+            params  = (( request.form['code'], request.form['desc'] , request.form['email'] , int(request.form['notify'])  ))
+            if request.form['op-code'] == 'insert':
+                sql = "{CALL dbo.put_mng_groups (?, ?, ?, ? )}"
+                cur.execute(sql, params)
+                conn.commit()
+            else:
+                sql =  "{CALL dbo.update_mng_groups (?, ?, ?, ? )}"
+                cur.execute(sql, params)
+                conn.commit()
+    
+    return render_template('admin/iou_notify.html', fac_alt = fac_alt, mng=mng)
 
 @app.route('/login', methods=["GET", "POST"])
 def login():

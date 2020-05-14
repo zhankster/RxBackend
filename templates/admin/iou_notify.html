@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	var nav = document.getElementById("navAdmin");
+	nav.className += " active";
+  nav.style.fontWeight = "bold";
+</script>
+<style>
+</style>
+<br/>
+<br/>
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<h1 style="color:#254878;">IOU Notifications</h1>
+			<br/>
+		</div>
+    </div>
+	<div class="row">
+        <div class="col-sm-2">
+            <button type="button" class="btn btn-primary" data-toggle="modal" onclick="resetForm()" data-target="#mFacility">
+                Add New Facility
+            </button>
+        </div>
+	</div>
+	<br/>
+	<div class="row">
+		<div class="col">
+      <div id="dFacility">
+			<table class="table"  id="tblCodes">
+				<thead class="thead-dark">
+					<tr>
+						<th scope="col">Code</th>
+						<th scope="col">Faclility Name</th>
+            <th scope="col">Email Addresses</th>
+            <th scope="col">Notify</th>
+            <th scope="col">Group</th>
+            <th scope="col" colspan="1">&nbsp;</th>
+					</tr>
+				</thead>
+				<tbody>
+          {% for c in fac_alt %}
+					<tr>
+						<th scope="row">
+                {{ c['code'] }}
+                <input type="hidden"  id="{{ c['code'] }}" value= "{{ c['code'] }}" />	
+								
+            </th>
+            <td>
+                {{ c['name'] }}
+                <input type="hidden"  id="{{ c['code'] }}_name" value= "{{ c['name'] }}" />
+            </td>
+            <td class="">
+              {{ c['email'] }}
+              <input type="hidden"  id="{{ c['code'] }}_email" value= "{{ c['email'] }}" />	
+          </td>
+            <td>
+                {{ c['notify'] }}
+                <input type="hidden"  id="{{ c['code'] }}_notify" value= "{{ c['notify'] }}" />	
+            </td>
+            <td>
+              {{ c['group'] }}
+              <input type="hidden"  id="{{ c['code'] }}_group" value= "{{ c['group'] }}" />
+          </td>
+						<td>
+              <a id='edit-user' href="#" onclick="edit_fac( '{{c['code']}}' )" >Edit</a>
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+    </div>
+  </div>
+  </div>
+  <br/>
+  <br/>
+  <div class="row">
+      <div class="col-sm-2">
+          <button type="button" class="btn btn-primary" data-toggle="modal" onclick="resetFormG()" data-target="#mGroup">
+              Add New Group
+          </button>
+      </div>
+</div>
+<br/>
+<div class="row">
+<br/>
+	<div class="col">
+  <div id="dGroup">
+    <table class="table"  id="tblGroups">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Code</th>
+          <th scope="col">Description</th>
+          <th scope="col">Email Addresses</th>
+          <th scope="col">Notify</th>
+          <th scope="col" colspan="1">&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in mng %}
+        <tr>
+          <th scope="row">
+              {{ c['codeG'] }}
+              <input type="hidden"  id="{{ c['codeG'] }}_gCode" value= "{{ c['codeG'] }}" />	            
+          </th>
+          <td>
+              {{ c['desc'] }}
+              <input type="hidden"  id="{{ c['codeG'] }}_desc" value= "{{ c['desc'] }}" />
+          </td>
+          <td class="">
+            {{ c['email'] }}
+            <input type="hidden"  id="{{ c['codeG'] }}_emailG" value= "{{ c['email'] }}" />	
+        </td>
+          <td>
+              {{ c['notify'] }}
+              <input type="hidden"  id="{{ c['codeG'] }}_send" value= "{{ c['notify'] }}" />	
+          </td>
+          <td>
+            <a id='edit-user' href="#" onclick="edit_group( '{{c['codeG']}}' )" >Edit</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  </div>
+  </div>
+</div>
+
+<!-- ADD FACILITY MODAL -->
+<div id="mFacility" class="modal fade" tabindex="-1" role="dialog">
+<form id="frmFac" ></form>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="mtCode">Add Faclility</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="pName"></p>
+        <div class="form-group row">
+          <label for="txtFac" class="col-sm-3 col-form-label">Facility Code</label>
+          <div class="col-sm-9">
+            <input id="txtFac" type="text"  />
+          </div>
+        </div>
+		<div class="form-group row">
+			<label for="txtEmail" class="col-sm-2 col-form-label">Email Addresses</label>
+			<div class="col-sm-10">
+        <textarea class="form-control" name="txtEmail" id="txtEmail"  rows="4" cols="50" ></textarea>
+			</div>
+      </div>
+    <div class="form-group row">
+			<div class="col-sm-4" id="tNotify">Send Notifications</div>
+				<div class="col-sm-8">
+					<div class="form-check">
+						<input class="form-check-input" type="checkbox" id="cNotify" name="cNotify">		
+						<input type="hidden" id="code-id" name="code-id"/>
+					</div>
+				</div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-2">
+        <label for="selMNG" class="col-sm-2 col-form-label">Group</label></div>
+        <div class="col-sm-10">
+          <select class="" id="selMNG" name="selMNG" >
+            <option value=""></option>
+            {% for c in mng %}
+            <option value="{{ c['codeG'] }}">{{ c['codeG'] }}</option>
+            {% endfor %}
+        </select>
+        </div>
+      </div>
+      <input type="hidden" id="op-code" name="op-code"/>
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="validateForm()" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+        <div>
+        <p id="errMsg" style="font-weight: bold; color:red"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+ </form>
+</div>
+<!-- ADD Group MODAL -->
+<div id="mGroup" class="modal fade" tabindex="-1" role="dialog">
+  <form id="frmFac" ></form>
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title" id="mtGroup">Add Group</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group row">
+            <label for="selMNG" class="col-sm-2 col-form-label">MNG Code</label>
+            <div class="col-sm-10">
+              <input id="txtMNG" type ='text' />
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="txtDescG" class="col-sm-2 col-form-label">Description</label>
+          <div class="col-sm-10">
+            <input id="txtDescG" type ='text'  size="36" />
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="txtEmailG" class="col-sm-2 col-form-label">Email Addresses</label>
+        <div class="col-sm-10">
+          <textarea class="form-control" name="txtEmailG" id="txtEmailG"  rows="4" cols="50" ></textarea>
+        </div>
+        </div>
+      <div class="form-group row">
+        <div class="col-sm-2" id="tNotifyG">Send Notifications</div>
+          <div class="col-sm-10">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="cNotifyG" name="cNotifyG">		
+              <input type="hidden" id="code-id" name="code-id"/>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="op-codeG" name="op-codeG"/>
+        </div>
+        <div class="modal-footer">
+          <button type="button" onclick="validateFormG()" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+          <div>
+          <p id="errMsgG" style="font-weight: bold; color:red"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+   </form>
+  </div>
+<script type="text/javascript">
+
+
+  $(function() {
+    /*
+    var sel = document.getElementById("selCategories");
+    //sel.options[sel.selectedIndex].value = "{{ category_code}}"
+    var text= sel.options[sel.selectedIndex].text;
+    //var text = $("#mainCatCode").val();
+    filterTable(text);
+    */
+  });
+
+ function edit_fac(code) {
+        console.log($("#" + code + "_group").val());
+        let stat = $("#" + code + "_notify").val().trim() == "True" ? true : false;
+        $('#errMsg').html("");
+        $('#mFacility').modal('show');
+        $('#code-id').val(code); ;
+        $('#op-code').val("edit");     
+        $('#pName').html( $("#" + code + "_name").val());   
+        $('#txtFac').val(code);
+        $('#txtFac').prop('disabled', 'disabled');
+        let emails = $("#" + code + "_email").val().split(';');
+        $('#txtEmail').val("");
+        for (i = 0; i < emails.length; i++) { 
+          document.getElementById('txtEmail').value += emails[i] + "\n";
+        }
+        removeTextAreaWhiteSpace('txtEmail');
+        $('#selMNG').val($("#" + code + "_group").val());
+        $('#cNotify').show();
+        $('#tNotify').show()
+        $('#cNotify').prop('checked', stat);
+        $('#errMsg').val("");
+        $('#mtCode').html("Edit  Facililty");
+
+    }
+	
+	function delete_code(code, desc, cat_code,category) {		
+        $('#delUser').modal('show');
+        $('#delUser #op-code').val('delete');
+        $('#delUser #del_code').val(code);
+        $('#delUser #delUserName').html(desc);
+        $('#delUser #delCategory').html(category)
+        $('#delUser #delCatCode').val(cat_code);
+    }
+    
+    function resetForm(){
+        $('#mtCode').html('Add New Facility');
+        $('#code-id').val("");
+        $('#op-code').val("insert");      
+        $('#txtDesc').val("");
+        $('#txtEmail').val("");
+        $('#selMNG').val("");
+        $('#txtFac').val("");
+        $('#txtFac').prop('disabled', false);
+        $('#cNotify').prop('checked', true);
+        $('#errMsg').html("");
+        $('#mtCode').html("Add Facility");
+    }
+
+    function validateForm(){
+        $('#errMsg').html("");
+        let opcode = $('#op-code').val(); 
+        let code =  $('#txtFac').val();   
+        let lines = $('#txtEmail').val().split('\n');
+        let group = $('#selMNG').val();
+        let notify = 1;
+        let email = "";
+        console.log(opcode);
+        let msg = "";
+        
+      if ($('#txtEmail').val() == "") {
+          msg += "At one email address is required<br />";
+      }
+
+        let line = ""
+        for(var i = 0;i < lines.length;i++){
+            line = lines[i].trim();
+            if (isEmail(line) ) {
+                email += line + ";";
+            }
+            else {
+              msg+= '"'+ line + '" is not a valid email address<br />'; 
+            }
+        }
+
+        if (code.trim() == "") {
+            msg += 'A facility code is required<br />';
+        }
+
+        if (msg !== "") {
+            $('#errMsg').html(msg);
+            return false;
+        }
+        else{
+            if ($("#cNotify").prop("checked") == true){
+              notify = 1
+            }
+            else {
+              notify = 0
+          } 
+        }
+        
+          $.ajax({
+              type: "POST",
+              url: "{{url_for('admin_iou_notify')}}",
+              dataType: 'json',
+              data: {
+                  'code': code.trim()
+                  ,'email': email
+                  ,'notify': notify
+                  ,'group' : group.trim()
+                  ,'op-code': opcode
+                  ,'p_type' : 'facility'
+              },
+              async: false,
+              success: function (data) {
+              },
+              complete: function (data) {
+                  location.reload();
+            }
+          });
+          return true;
+    }
+
+function edit_group(codeG){
+  console.log($("#" + codeG + "_send").val().trim());
+  let stat = $("#" + codeG + "_send").val().trim() == "True" ? true : false;
+  $('#errMsgG').html("");
+  $('#mGroup').modal('show');
+  $('#code-idG').val(codeG); 
+  $('#op-codeG').val("edit");     
+  $('#txtMNG').val(codeG);
+  $('#txtDescG').val( $("#" + codeG + "_desc").val());
+  let emails = $("#" + codeG + "_emailG").val().split(';');
+  console.log ("e:" + emails);
+  $('#txtEmailG').val("");
+  for (i = 0; i < emails.length; i++) { 
+    document.getElementById('txtEmailG').value += emails[i] + "\n";
+  }
+  removeTextAreaWhiteSpace('txtEmailG');
+  $('#cNotifyG').prop('checked', stat);
+}
+
+function resetFormG(){
+  $('#mtGroup').html('Add New ');
+  $('#code-idG').val("");
+  $('#op-codeG').val("insert");      
+  $('#txtMNG').val("");
+  $('#txtEmailG').val("");
+  $('#txtDescG').val("");
+  $('#cNotifyG').prop('checked', true);
+  $('#errMsgG').html("");
+  $('#mtCode').html("Add Group");
+}
+
+function validateFormG(){
+  $('#errMsg').html("");
+  let opcode = $('#op-codeG').val(); 
+  let code =  $('#txtMNG').val();   
+  let lines = $('#txtEmailG').val().split('\n');
+  let  desc = $('#txtDescG').val();
+  let notify = 1;
+  let email = "";
+  console.log(opcode);
+  let msg = "";
+  
+if ( $('#txtEmailG').val().trim() == "" ) {
+    msg += "At least one email address is required<br />";
+}
+
+  let line = ""
+  for(var i = 0;i < lines.length;i++){
+      line = lines[i].trim();
+      if (isEmail(line) ) {
+          email += line + ";";
+      }
+      else {
+        msg+= '"'+ line + '" is not a valid email address<br />'; 
+      }
+  }
+
+  if (code.trim() == "") {
+      msg += 'An MNG group code is required<br />';
+  }
+
+  if (msg !== "") {
+      $('#errMsgG').html(msg);
+      return false;
+  }
+  else{
+      if ($("#cNotifyG").prop("checked") == true){
+        notify = 1
+      }
+      else {
+        notify = 0
+    } 
+  }
+  
+    $.ajax({
+        type: "POST",
+        url: "{{url_for('admin_iou_notify')}}",
+        dataType: 'json',
+        data: {
+            'code': code
+            ,'email': email
+            ,'notify': notify
+            ,'desc' : desc
+            ,'op-code': opcode
+            ,'p_type' : 'group'
+        },
+        async: false,
+        success: function (data) {
+        },
+        complete: function (data) {
+            location.reload();
+      }
+    });
+    return true;
+}
+
+</script>
+{% endblock %}

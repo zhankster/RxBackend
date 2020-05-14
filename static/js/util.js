@@ -59,3 +59,22 @@ function checkIntVal(num, numCompare) {
     return "Not a valid numeric value";
 }
 
+function removeTextAreaWhiteSpace(el) {
+    var lines = $("textarea[name="+ el +"]").val().split(/\n/);      
+    var texts = [];    
+    for (var i=0; i < lines.length; i++) {    
+      if (/\S/.test(lines[i])) {    
+        texts.push($.trim(lines[i]));    
+      }    
+    }    
+    var n = texts.toString().split(",").join("\n");    
+    $("textarea[name="+ el +"]") .val(n);
+  }
+
+
+
+  function isEmail(email) {
+    var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+    return regex.test(email);
+  }
+
