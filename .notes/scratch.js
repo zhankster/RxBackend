@@ -1,3 +1,12 @@
+$("#tbAddress").find('tr').each(function (rowIndex, r) {
+    let cols = [];
+    cols.push($(this).attr("id")); 
+    // $(this).find('td').each(function (colIndex, c) {
+    //     cols.push($(this).attr("rel"));  
+    // });
+    data.push(cols);
+});
+
 function openDialog(id, err){
     if (err != ""){
         err = "<br />" + err;

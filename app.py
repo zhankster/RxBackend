@@ -1332,7 +1332,7 @@ def admin_iou_notify():
         fac_alt.append(d)
     
     sql = dbs.get_mng()
-    print(sql)
+    # print(sql)
     cur.execute(sql)
     rows = cur.fetchall()
     mng = []
@@ -1347,9 +1347,9 @@ def admin_iou_notify():
         
     if request.method == 'POST':
         if request.form['p_type'] == 'facility':
-            params  = (( request.form['code'], request.form['email'] , request.form['group'] , int(request.form['notify'])  ))
+            params  = (( request.form['code'], request.form['group']   ))
             if request.form['op-code'] == 'insert':
-                sql =  "{CALL dbo.put_fac_alt_notify (?, ?, ?, ? )}"
+                sql =  "{CALL dbo.put_fac_alt_notify (?, ?)}"
                 cur.execute(sql, params)
                 conn.commit()
             else:
@@ -1368,6 +1368,25 @@ def admin_iou_notify():
                 conn.commit()
     
     return render_template('admin/iou_notify.html', fac_alt = fac_alt, mng=mng)
+
+@app.route('/updateRx', methods=['POST'])
+def updateRx():
+    sql = request.form['sql']
+    print(sql)
+    conn = pyodbc.connect(RX_CONNECTION_STRING)
+    cur = conn.cursor()
+    cur.execute(sql)
+    conn.commit()
+    
+    return 'items'
+
+@app.route('/getAddresses', methods=['POST'])
+def getSearch():
+    sql = request.form['sql']
+    items = dbs.get_json(sql)        
+    items = jsonify(items)
+
+    return items
 
 @app.route('/login', methods=["GET", "POST"])
 def login():

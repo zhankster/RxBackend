@@ -12,7 +12,7 @@
 <div class="container">
 	<div class="row">
 		<div class="col">
-			<h1 style="color:#254878;">IOU Notifications</h1>
+			<h1 style="color:#254878;">Email Notifications</h1>
 			<br/>
 		</div>
     </div>
@@ -32,8 +32,6 @@
 					<tr>
 						<th scope="col">Code</th>
 						<th scope="col">Faclility Name</th>
-            <th scope="col">Email Addresses</th>
-            <th scope="col">Notify</th>
             <th scope="col">Group</th>
             <th scope="col" colspan="1">&nbsp;</th>
 					</tr>
@@ -50,21 +48,13 @@
                 {{ c['name'] }}
                 <input type="hidden"  id="{{ c['code'] }}_name" value= "{{ c['name'] }}" />
             </td>
-            <td class="">
-              {{ c['email'] }}
-              <input type="hidden"  id="{{ c['code'] }}_email" value= "{{ c['email'] }}" />	
-          </td>
-            <td>
-                {{ c['notify'] }}
-                <input type="hidden"  id="{{ c['code'] }}_notify" value= "{{ c['notify'] }}" />	
-            </td>
-            <td>
+            <td id="{{ c['code'] }}_tdGroup">
               {{ c['group'] }}
-              <input type="hidden"  id="{{ c['code'] }}_group" value= "{{ c['group'] }}" />
           </td>
 						<td>
               <a id='edit-user' href="#" onclick="edit_fac( '{{c['code']}}' )" >Edit</a>
-						</td>
+            </td>
+            <input type="hidden"  id="{{ c['code'] }}_group" value= "{{ c['group'] }}" />
 					</tr>
 					{% endfor %}
 				</tbody>
@@ -144,28 +134,14 @@
           <label for="txtFac" class="col-sm-3 col-form-label">Facility Code</label>
           <div class="col-sm-9">
             <input id="txtFac" type="text"  />
+            <input id="txtFacVal" type="hidden"  />
           </div>
         </div>
-		<div class="form-group row">
-			<label for="txtEmail" class="col-sm-2 col-form-label">Email Addresses</label>
-			<div class="col-sm-10">
-        <textarea class="form-control" name="txtEmail" id="txtEmail"  rows="4" cols="50" ></textarea>
-			</div>
-      </div>
-    <div class="form-group row">
-			<div class="col-sm-4" id="tNotify">Send Notifications</div>
-				<div class="col-sm-8">
-					<div class="form-check">
-						<input class="form-check-input" type="checkbox" id="cNotify" name="cNotify">		
-						<input type="hidden" id="code-id" name="code-id"/>
-					</div>
-				</div>
-      </div>
+
       <div class="form-group row">
-        <div class="col-sm-2">
-        <label for="selMNG" class="col-sm-2 col-form-label">Group</label></div>
-        <div class="col-sm-10">
-          <select class="" id="selMNG" name="selMNG" >
+        <label for="selMNG" class="col-sm-3 col-form-label">MM Group</label>
+        <div class="col-sm-9">
+          <select class="notify" id="selMNG" name="selMNG" >
             <option value=""></option>
             {% for c in mng %}
             <option value="{{ c['codeG'] }}">{{ c['codeG'] }}</option>
@@ -173,13 +149,54 @@
         </select>
         </div>
       </div>
+      <p id="errMsg" style="font-weight: bold; color:red"></p>
+
+      <div id="dAddress" style="display:none">
+        <hr />
+        <div class="form-group row ">
+            <div class="col-sm-7">
+              <label for="txtAddAddress" class="">Email Address</label>
+              <input type="text"  class="form-control form-control-sm" id="txtAddAddress" name="txtAddress" placeholder="" />
+            </div>
+            <div class="col-sm-1">
+              <label for="cbARX" class="">ARX</label>
+              <input type="checkbox"  class="form-control form-control-sm" id="cbARX" name="cbAUX" placeholder="" />
+            </div>
+            <div class="col-sm-1">
+              <label for="cbIOU" class="">IOU</label>
+              <input type="checkbox"  class="form-control form-control-sm" id="cbIOU" name="cbIOU" placeholder="" />
+            </div>
+            <div class="col-sm-1">
+              <label for="cbBilling" class="">Billing</label>
+              <input type="checkbox"  class="form-control form-control-sm" id="cbBilling" name="cbBilling" placeholder="" />
+            </div>
+            <div class="col-sm-1">
+              <label for="btnAddAddress" class=""></label>
+              <button class="btn btn-sm" id="btnAddAddress" onclick="addAddress()">Add</button>
+            </div>
+        </div>
+
+        <table class="table table-striped" id="tblSearch">
+          <thead class="">
+              <tr class="table-primary">
+                  <th scope="col">Address</th>
+                  <th scope="col">ARX</th>
+                  <th scope="col">IOU</th>
+                  <th scope="col">Billing</th>
+                  <!-- <th scope="col"></th> -->
+              </tr>
+          </thead>
+          <tbody id="tbAddress">
+          </tbody>
+      </table>
+      </div>
+
       <input type="hidden" id="op-code" name="op-code"/>
       </div>
       <div class="modal-footer">
-        <button type="button" onclick="validateForm()" class="btn btn-primary">Save</button>
-        <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+        <button type="button" onclick="save_addresses()" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-light" onclick="checkUpdate()" >Cancel</button>
         <div>
-        <p id="errMsg" style="font-weight: bold; color:red"></p>
         </div>
       </div>
     </div>
@@ -239,44 +256,33 @@
    </form>
   </div>
 <script type="text/javascript">
+  let changed = false;
+  $(function(){
+    $(document).on( 'change', '.notify', function(){
+          changed = true;
+    } );
+  })
 
-
-  $(function() {
-    /*
-    var sel = document.getElementById("selCategories");
-    //sel.options[sel.selectedIndex].value = "{{ category_code}}"
-    var text= sel.options[sel.selectedIndex].text;
-    //var text = $("#mainCatCode").val();
-    filterTable(text);
-    */
-  });
-
- function edit_fac(code) {
+function edit_fac(code) {
         console.log($("#" + code + "_group").val());
-        let stat = $("#" + code + "_notify").val().trim() == "True" ? true : false;
+        getAddresses(code);
+        changed = false;
         $('#errMsg').html("");
         $('#mFacility').modal('show');
+        $("#dAddress").show();
         $('#code-id').val(code); ;
         $('#op-code').val("edit");     
         $('#pName').html( $("#" + code + "_name").val());   
         $('#txtFac').val(code);
         $('#txtFac').prop('disabled', 'disabled');
-        let emails = $("#" + code + "_email").val().split(';');
-        $('#txtEmail').val("");
-        for (i = 0; i < emails.length; i++) { 
-          document.getElementById('txtEmail').value += emails[i] + "\n";
-        }
-        removeTextAreaWhiteSpace('txtEmail');
+        $('#txtFacVal').val(code.trim());
         $('#selMNG').val($("#" + code + "_group").val());
-        $('#cNotify').show();
-        $('#tNotify').show()
-        $('#cNotify').prop('checked', stat);
         $('#errMsg').val("");
         $('#mtCode').html("Edit  Facililty");
 
     }
 	
-	function delete_code(code, desc, cat_code,category) {		
+function delete_code(code, desc, cat_code,category) {		
         $('#delUser').modal('show');
         $('#delUser #op-code').val('delete');
         $('#delUser #del_code').val(code);
@@ -285,12 +291,12 @@
         $('#delUser #delCatCode').val(cat_code);
     }
     
-    function resetForm(){
+function resetForm(){
         $('#mtCode').html('Add New Facility');
+        $("#dAddress").hide();
         $('#code-id').val("");
         $('#op-code').val("insert");      
         $('#txtDesc').val("");
-        $('#txtEmail').val("");
         $('#selMNG').val("");
         $('#txtFac').val("");
         $('#txtFac').prop('disabled', false);
@@ -299,31 +305,15 @@
         $('#mtCode').html("Add Facility");
     }
 
-    function validateForm(){
+function validateForm(){
         $('#errMsg').html("");
         let opcode = $('#op-code').val(); 
         let code =  $('#txtFac').val();   
-        let lines = $('#txtEmail').val().split('\n');
         let group = $('#selMNG').val();
         let notify = 1;
         let email = "";
         console.log(opcode);
         let msg = "";
-        
-      if ($('#txtEmail').val() == "") {
-          msg += "At one email address is required<br />";
-      }
-
-        let line = ""
-        for(var i = 0;i < lines.length;i++){
-            line = lines[i].trim();
-            if (isEmail(line) ) {
-                email += line + ";";
-            }
-            else {
-              msg+= '"'+ line + '" is not a valid email address<br />'; 
-            }
-        }
 
         if (code.trim() == "") {
             msg += 'A facility code is required<br />';
@@ -348,8 +338,6 @@
               dataType: 'json',
               data: {
                   'code': code.trim()
-                  ,'email': email
-                  ,'notify': notify
                   ,'group' : group.trim()
                   ,'op-code': opcode
                   ,'p_type' : 'facility'
@@ -364,7 +352,177 @@
           return true;
     }
 
+function getAddresses(fac_code){
+  let html = "";
+  $.ajax({
+    data: {
+        sql: `SELECT ID
+            ,ADDRESS
+            ,ARX
+            ,IOU
+            ,Billing
+            FROM FAC_EMAIL
+            WHERE FAC_CODE= '` + fac_code + `'`        
+    },
+    type: 'POST',
+    url: '/getAddresses',
+    dataType: 'json'
+})
+.done(function (data) {
+    $.each(data, function (index, item) {
+        let id = item.ID
+        let address= item.ADDRESS;
+        let arx = item.ARX== 1? 'checked': '';
+        let iou= item.IOU== 1? 'checked': '';
+        let billing = item.Billing== 1? 'checked':'';
+        console.log("ARX: " + arx + "," + id);
+        html += '<tr id="' + id + '"><td rel="' + address + '"><input type="text" id="' + id +'_address"  class="address notify" value="' + address + '"/></td>';
+        html += '<td rel="' + arx + '" id="'+ id +'_arx_td" ><input type="checkbox" id="' + id +'_arx"  ' + arx + ' class="arx notify" /></td>';
+        html += '<td rel="' + iou+ '" id="'+ id +'_iou_td" ><input type="checkbox" id="' + id +'_iou"  ' + iou + '  class="iou notify"/></td>';
+        html += '<td rel="' + billing + '" id="'+ id +'_billing_td" ><input type="checkbox" id="' + id +'_billing"  ' + billing + '  class="billing  notify"/></td>';
+    });
+    $("#tbAddress").html(html);
+});
+}
+
+function save_addresses(){
+  if ($('#op-code').val().trim() == "insert"){
+    validateForm();
+  }
+  else {
+    var data = [];
+    $("#tbAddress").find('tr').each(function (rowIndex, r) {
+        let cols = [];
+        cols.push($(this).attr("id")); 
+        data.push(cols);
+    });
+    //console.log(data);
+    $.each( data, function( k, v ) {
+
+      let id='', address='',arx='',iou='', billing=''
+      $.each( v, function( k, v ) {
+        //console.log( k+ ": " + v );
+        id = v
+        address = $('#' + id + '_address').val();
+        arx = $('#' +id + '_arx').is(":checked")? '1': '0' ;
+        iou = $('#' +id + '_iou').is(":checked")? '1': '0' ;
+        billing = $('#' +id + '_billing').is(":checked")? '1': '0' ;
+      });
+
+      let sql = `UPDATE FAC_EMAIL\n`
+      sql +=` SET ADDRESS='` + address + `'\n`
+      sql += `,ARX=` + arx  + `\n`
+      sql += `,IOU=` + iou  + `\n`
+      sql +=`,Billing=` + billing + `\n`
+      sql +=` WHERE ID=` + id;
+
+        $.ajax({
+            type: "POST",
+            url: "{{url_for('updateRx')}}",
+            dataType: 'json',
+            data: {
+                'sql': sql
+            },
+            async: false,
+            success: function (data) {
+              
+            },
+            complete: function (data) {
+
+          }
+      });
+
+    });
+
+    saveGroup($('#txtFacVal').val());
+    changed = false;
+
+  }
+}
+
+function saveGroup(fac_code){
+  let group = $('#selMNG').val();
+  let sql = `UPDATE FAC_ALT `;
+        sql += ` SET MNG = '` + group  + `'`;
+        sql += ` WHERE DCODE = '`  + fac_code + `'`;
+  console.log(sql);
+
+  $.ajax({
+    type: "POST",
+    url: "{{url_for('updateRx')}}",
+    dataType: 'json',
+    data: {
+        'sql': sql
+    },
+    async: false,
+    success: function (data) {
+
+    },
+    complete: function (data) {
+     
+  }
+});
+$("#" + fac_code + "_tdGroup").text(group);
+$("#" + fac_code + "_group").val(group);
+}
+
+function addAddress(){
+    let address = $('#txtAddAddress').val().trim();
+    if (!isEmail(address)){
+      alert("The email address is not in a valid format")
+      return false;
+    }
+
+    let fac_code = $('#txtFacVal').val().trim();
+    let arx = $('#cbARX').is(":checked")? '1': '0';
+    let iou = $('#cbIOU').is(":checked")? '1': '0';
+    let billing = $('#cbBilling').is(":checked")? '1': '0';
+
+    let sql = "INSERT INTO FAC_EMAIL (FAC_CODE,ADDRESS, ARX, IOU, Billing)"
+        sql +=" VALUES('" + fac_code + "', '" + address + "', "+ arx + " , " + iou + ", "+ billing +")";
+    console.log(sql);
+
+    $.ajax({
+        type: "POST",
+        url: "{{url_for('updateRx')}}",
+        dataType: 'json',
+        data: {
+            'sql': sql
+        },
+        async: false,
+        success: function (data) {
+          
+        },
+        complete: function (data) {
+
+      }
+    });
+    $("#cbARX").prop("checked", false);
+    $("#cbIOU").prop("checked", false);
+    $("#cbBilling").prop("checked", false);
+    $('#txtAddAddress').val("");
+    getAddresses(fac_code);
+
+}
+
+function checkUpdate(){
+  if(changed){
+    var r = confirm("Do you want to leave before saving?");
+    if (r == true) {
+      $('#mFacility').modal('hide');
+    } else {
+      return false
+    } 
+  }
+  else{
+    $('#mFacility').modal('hide');
+  }
+
+}
+
 function edit_group(codeG){
+  $('#mtCode').html("Update Group");
+  $('#mtGroup').html("Update Group");
   console.log($("#" + codeG + "_send").val().trim());
   let stat = $("#" + codeG + "_send").val().trim() == "True" ? true : false;
   $('#errMsgG').html("");
@@ -384,7 +542,7 @@ function edit_group(codeG){
 }
 
 function resetFormG(){
-  $('#mtGroup').html('Add New ');
+  $('#mtGroup').html('Add New Group');
   $('#code-idG').val("");
   $('#op-codeG').val("insert");      
   $('#txtMNG').val("");
@@ -392,7 +550,7 @@ function resetFormG(){
   $('#txtDescG').val("");
   $('#cNotifyG').prop('checked', true);
   $('#errMsgG').html("");
-  $('#mtCode').html("Add Group");
+  $('#mtCode').html("Add New Group");
 }
 
 function validateFormG(){
@@ -461,4 +619,5 @@ if ( $('#txtEmailG').val().trim() == "" ) {
 }
 
 </script>
+
 {% endblock %}
