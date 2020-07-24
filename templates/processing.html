@@ -36,7 +36,7 @@
 						<input type="text" autofocus="autofocus" name="batch-id" id="batch-id" 
 						required="true" {% if batch_id != None and not errors %}disabled=true{% endif %}>
 					</form></th>
-					<td style="background-color:{{batch['color']}}">{{ batch['facility'] }}</td>
+					<td  class="{{ fac_status }}">{{ batch['facility'] }}</td>
 					<td>{{ batch['ship'] }}</td>
 					<td>{{ batch['tech'] }}</td>
 				</tr>
@@ -73,10 +73,10 @@
 					<table class="table table-striped">
 						<thead class="thead">
 							<tr>
-							  <th scope="col">NAME</th>
-							  <th scope="col">MEDICATION</th>
-							  <th scope="col">QTY</th>
-							  <th scope="col">PRESENT</th>
+								<th scope="col">NAME</th>
+								<th scope="col">MEDICATION</th>
+								<th scope="col">QTY</th>
+								<th scope="col">PRESENT</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -122,8 +122,16 @@
 	<!--Table for all facility items HDA-2019-09-24 -->
 	 <div class="row">
 		<div class="col">
-		  		<br/>
-  		<table class="table">
+				  <br/>
+		Pending: <span class="pending">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+		&nbsp;&nbsp;
+		Rx Processed: <span class="rx-processed">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+		&nbsp;&nbsp;
+		Complete: <span class="complete">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+		&nbsp;&nbsp;
+		Reconciled: <span class="reconciled">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+		&nbsp;&nbsp;
+		<table class="table">
   			<thead class="thead-dark">
     			<tr>
      	 			<th scope="col">BATCH</th>

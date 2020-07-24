@@ -27,3 +27,19 @@
     height: 360px !important;
     overflow: scroll;
   }
+
+.pending{
+    background-color:#FA6A6A;
+}
+
+.rx-processed{
+    background-color:#DEDEE0;
+}
+
+.complete{
+    background-color:#FBFBBB
+}
+
+.reconciled{
+    background-color:#7FBF3F;
+}

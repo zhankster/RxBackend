@@ -370,6 +370,7 @@ def processing():
     objects_list = {}
     facility_items = []
     fac_dcode = '0'
+    fac_status = 'NA'
     bg = '#FFFFFF'
     bat_total = 0
 
@@ -411,10 +412,20 @@ def processing():
             error = 404
 
         # Get Facility data HDA-2019-09-24
+        print(fac_dcode)
         conn1 = pyodbc.connect(RX_CONNECTION_STRING)
         cur1 = conn1.cursor()
+        cur1.execute("""EXEC dbo.facility_ship_status ?""",fac_dcode.replace(' ', ''))
+        fac_status = cur1.fetchone()
+        fac_status = str(fac_status[0]).replace(' ', '')
+        if fac_status == "R":
+            fac_status = 'pending'
+        elif fac_status == "Y":
+            fac_status = 'complete'
+        elif fac_status == "":
+            fac_status = 'reconciled'
+        print(fac_status)
         cur1.execute("""EXEC dbo.todays_all_rx_by_facility ?""",fac_dcode.replace(' ', ''))
-        #cur1.execute("""EXEC dbo.todays_all_rx_by_facility ?""",'GL')
         rows_facility = cur1.fetchall()
 
         if len(rows_facility) > 0:
@@ -437,13 +448,13 @@ def processing():
                 d['exception'] = row.EXCEPTION
                 ## d['fac_dcode'] = row.FAC_DCODE
                 d['status'] = row.STATUS
-                if d['status'] == "P":
-                    d['bg'] = "#FA6A6A"
-                elif d['status'] == "X":
+                if d['status'] == "P":  #Pending  --Red
+                    d['bg'] = "#FA6A6A" 
+                elif d['status'] == "X":  #Rx Processed  --Gray
                     d['bg'] = "#DEDEE0"
-                elif d['status'] == "C":
+                elif d['status'] == "C":  #Complete  --Yellow
                     d['bg'] = "#FBFBBB"
-                elif d['status'] == "R":
+                elif d['status'] == "R":   #Reconciled  --Green
                     d['bg'] = "#7FBF3F"
                 else:
                     d['bg'] = "#FFFFFF"
@@ -510,7 +521,7 @@ def processing():
         objects_list = None
         batch_id = None
 
-    return render_template('processing.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes, facility_items=facility_items, bg=bg, bat_total = bat_total)
+    return render_template('processing.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes, facility_items=facility_items, bg=bg, bat_total = bat_total, fac_status = fac_status )
 
 @app.route("/iou", methods=["GET", "POST"])
 @login_required
@@ -565,7 +576,7 @@ def iou():
         else:
             error = 404
     elif request.method == "POST":
-        sql = "{CALL dbo.put_batch_fill_for_iou (?, ?, ?)}"
+        sql = "{CALL dbo.put_batch_fill_for_iou (?, ?, ?, ?)}"
         fills = request.form.getlist("cbfil")
         fills = [x.encode('UTF8') for x in fills]
         user = request.form["username"]
@@ -592,7 +603,7 @@ def iou():
                 iou_files.append("temp/" + iou_filename)
                 with open("temp/" + iou_filename,"wb") as fo:
                     fo.write(rendered)
-                params = (int(i), float(request.form[key]), user)
+                params = (int(i), float(request.form[key]), user, int(batch_id))
                 
                 cur.execute(sql, params)
                 conn.commit()
@@ -661,19 +672,36 @@ def iou_processing():
                 io['IOU'][row.IOU_ID]['stat_desc'] = row.STAT_DESC
                 io['IOU'][row.IOU_ID]['ship'] = row.SHIP
                 io['IOU'][row.IOU_ID]['tech'] = row.TECH
+                io['IOU'][row.IOU_ID]['seq'] = row.SEQ
                 io['IOU'][row.IOU_ID][row.TRANS_ID] = {'username' : row.USER_NAME, 'trans_type': row.TRANS_TYPE, 'add_qty' : round(row.ADD_QTY, 2), 'trans_date': row.TRANS_DATE}
         else:
             io = None
             
     elif request.method == "POST":  
+        print("Close")
         sql = "{CALL dbo.close_iou_request (?, ?, ?,?)}"
-        id = request.form['iou_id']
+        iou_id = request.form['iou_id']
         iou_qty = request.form['add_qty']
         user = request.form['user']
         status = request.form['status']
-        params = (int(id), Decimal(iou_qty),user, status)
+        fill_date = request.form['fill_date']
+        batch = request.form['batch']
+        trans_id = request.form['trans_id']
+        seq = request.form['seq']
+        params = (int(iou_id), Decimal(iou_qty),user, status)
         cur.execute(sql, params)
         conn.commit()
+        print("Close End: " + iou_id, fill_date, batch, trans_id, seq, status )
+        # compare date
+        fill_date_val = datetime.strptime(fill_date, '%Y-%m-%d').date()
+        curr_date_val = datetime.now().date()
+        if fill_date_val < curr_date_val and (status == 'IF' or status == 'IP' ):
+            sql = "{CALL dbo.put_iou_for_ship (?, ?, ?, ?, ?)}"
+            print('Add to ship', int(trans_id), user, Decimal(iou_qty),int(seq), int(batch))
+            params = (int(trans_id), user, Decimal(iou_qty),int(seq), int(batch))
+            cur.execute(sql, params)
+            conn.commit()
+            
         return redirect(url_for("iou_processing"))
     else:
         iou_items = []
@@ -1316,7 +1344,7 @@ def admin_iou_notify():
     conn = pyodbc.connect(RX_CONNECTION_STRING)
     cur = conn.cursor()
     sql = dbs.get_fac_alt()
-    print(sql)
+    # print(sql)
     cur.execute(sql)
     rows = cur.fetchall()
     

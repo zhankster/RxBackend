@@ -71,6 +71,7 @@
                     <td class="search">
                         {{ v['del_bat_id'] }}
                         <input type="hidden" value="{{v['del_bat_id']}}" id="{{ v['iou_id'] }}_delbatid" name="{{ v['iou_id'] }}_delbatid"/>
+                        <input type="hidden" value="{{v['seq']}}" id="{{ v['iou_id'] }}_seq" name="{{ v['iou_id'] }}_seq"/>
                     </td>
                     <td>
                         {{ v['kop'] }}
@@ -122,6 +123,7 @@
                         class="btn btn-primary btn-xs btnFormSubmit" type="button" value="{{ v['iou_id'] }}"  
                         name="clear_button" >Close</button>
                         <input type="hidden" value="{{v['fill_id']}}" id="{{ v['iou_id'] }}_ioufill" name="{{ v['iou_id'] }}_ioufill"/>
+                        <input type="hidden" value="{{v['id']}}" id="{{ v['iou_id'] }}_id" name="{{ v['iou_id'] }}_id"/>
                     </td>
                     <td>
                         <button id="{{ v['iou_id'] }}_btnReprint" class="btn btn-primary btn-xs btnReprint" type="submit" value="{{ v['iou_id'] }}"  
@@ -201,6 +203,10 @@
         $("#mIouComp").text($("#" + id + "_ioucomp").val());
         var rem_qty = Number($("#" + id + "_iouqty").val()) - Number($("#" + id + "_ioucomp").val());
         var fill_id = $("#" + id + "_ioufill").val();
+        $("#m_filldate").val( $("#" + id + "_filldate").val());
+        $("#m_batch").val($("#" + id + "_delbatid").val());
+        $("#m_id").val($("#" + id + "_id").val());
+        $("#m_seq").val($("#" + id + "_seq").val());
         $("#mfillVal").val(rem_qty);
         $("#mIdSubmit").val(id);
         $("#pError").text(err);
@@ -327,6 +333,10 @@ $('.btnUpdate').click(function(e) {
             var iou_comp = Number($("#" + id + "_ioucomp").val());
             var rem_qty = iou_qty - iou_comp;
             var add_qty = $("#mfillVal").val();
+            var fill_date =  $("#m_filldate").val();
+            var trans_id =  $("#m_id").val();
+            var seq =  $("#m_seq").val();
+            var batch = $("#m_batch").val();
             var uf_close = $("#cbIOU").prop("checked");
             var uf_invalid = $("#cbInval").prop("checked");
             var user = $.trim($(".curr_user").text());
@@ -351,17 +361,17 @@ $('.btnUpdate').click(function(e) {
 
 
             if (uf_close) {
-                status = 'IC';
+                status = 'IC'; //User Close
             }           
             else if (uf_invalid) {
-                status = 'IIV';
+                status = 'IIV';  //Invalidated
                 add_qty = 0;
             }
             else if (add_qty == rem_qty){
-                status = 'IF';
+                status = 'IF';  //Filled by user
             }
             else if (add_qty < rem_qty){
-                status = 'IP';
+                status = 'IP';  //Partial
             }
             
             console.log(id, iou_qty, status, iou_comp, rem_qty, add_qty, user);
@@ -375,6 +385,10 @@ $('.btnUpdate').click(function(e) {
                     ,'add_qty': add_qty
                     ,'status': status
                     ,'user': user
+                    ,'fill_date': fill_date
+                    ,'batch': batch
+                    ,'trans_id': trans_id
+                    ,'seq': seq
                 },
                 async: false,
                 success: function (data) {
@@ -424,6 +438,10 @@ $('.btnUpdate').click(function(e) {
                 <p style='color:red; font-weight:bold' id="pError">
                 </p>
                 <input type="hidden" id="mIdSubmit" />
+                <input type="hidden" id="m_filldate" />
+                <input type="hidden" id="m_batch" />
+                <input type="hidden" id="m_id" />
+                <input type="hidden" id="m_seq" />
             </div>
             <div class="modal-footer">
                 <span class="mr-auto" style='color:red; font-weight:bold' id="iCost"></span>

@@ -220,6 +220,7 @@
 		$('.P_check').each(function(){
 			if($(this).is(':checked')){
 				var id = $(this).attr('id').split("_")[0];
+				var batch_id = $("#batch_id").val().trim();
 				var ni = $("#" + id + "_iouqty").val().trim(); //IOU qty
 				var nc = $("#" + id + "_qty").val().trim(); //Fill qty
 				var drgname = $("#" + id + "_drgname").val().trim();

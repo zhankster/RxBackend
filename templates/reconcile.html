@@ -154,7 +154,9 @@
 	TR.reconciled { font-weight: bold;background-color: green; }
 </style>
 
-<script type="text/javascript">		
+<script type="text/javascript">
+	//JSON.parse(sessionStorage.getItem('LH');	
+	
 	function get_batch_status(complete, reconciled) {
 		var ret;
 		
@@ -175,7 +177,8 @@
 	}
 	
 	function is_resolved(facility) {
-		var db = JSON.parse(sessionStorage.getItem(facility));		
+		var db = JSON.parse(sessionStorage.getItem(facility));	
+		console.log("SS: " + sessionStorage.getItem(facility));	
 		var accRec = 0;
 		var accObj = Object.keys(db).length;
 		var complete = false;
@@ -199,6 +202,7 @@
 				console.log(facility);
 				console.log(batches);
 				init_cache(facility, batches);
+				console.log(facility);
 				$('#reconcileBatchFac').val(facility);
 				
 				if (is_resolved(facility)) {
@@ -243,9 +247,11 @@
 		var accObj = Object.keys(db).length;
 		var complete = false;
 		var html = ""
+		console.log("DB: " + db);
 		$('#batchTableBody').html("");
 		$.each(db, function(k,v) {	
-			var status = get_batch_status(v['completed'], v['reconciled']);		
+			var status = get_batch_status(v['completed'], v['reconciled']);	
+			console.log("Stat: " + status + "Val: " +v['reconciled']);
 			
 			if (status == "reconciled")
 				accRec +=1;
@@ -271,7 +277,7 @@
 		var errorText = "";
 		var status;
 		
-		console.log(batch);
+		//console.log(batch);
 		if (batch == undefined) {
 			$('#reconcileBatchID').val("");
 			return {status: success, msg: "This batch is not associated with this facilty, please verify batch-id and try again."};			
