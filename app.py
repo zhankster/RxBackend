@@ -520,6 +520,8 @@ def processing():
     else:
         objects_list = None
         batch_id = None
+    if batch_id != None and float(str(batch_id)) > 9000000000.00:
+        error = None
 
     return render_template('processing.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes, facility_items=facility_items, bg=bg, bat_total = bat_total, fac_status = fac_status )
 
