@@ -48,73 +48,50 @@
 
 	{% if batch != None and errors == None %}
 	<form name="processBatch" id="processBatch" action="{{url_for('processing')}}" method="POST">
-		<div class="row" align="right">
-			<div class="col-8">
-				{% if no_sat_del %}
-				<span id="lbNoSat" class="font-weight-bold bg-danger mr-3 pull-left px-4 " style="color: #ffffff">No
-					Saturday Delivery for FedEx</span>
-				{% endif %}
-				<span id="lbUMT"></span>
-			</div>
-			<div class="col-4">
-				<span id="lbCount" class="font-weight-bold bg-warning mr-3"></span>
-				<span class="font-weight-bold">Print &nbsp;</span><input id="cbPrint" name="cbPrint" type="checkbox" />
-				&nbsp;&nbsp;
-				<!-- <button id="btnFormSubmit" type="button" data-toggle="modal" data-target="#exceptionsModal" class="btn btn-dark frmSubmit">COMPLETE BATCH</button> -->
-				<button id="btnFormSubmit" type="button" class="btn btn-primary frmSubmit">COMPLETE</button>
-				<br />
-				<br />
-			</div>
-		</div>
-		<div class="row" align="right">
+		<div class="row">
 			<div class="col">
-				<span class="font-weight-bold">Refill &nbsp;</span><input id="cbRefill" name="cbRefill" disabled
-					type="checkbox" />
-				&nbsp;&nbsp;
-				<span class="font-weight-bold">Stock &nbsp;</span><input id="cbStock" name="cbStock" disabled
-					type="checkbox" />
+				<div class="row" align="right">
+					<div class="col">
+						<span class="font-weight-bold">Print &nbsp;</span><input id="cbPrint" name="cbPrint"
+						type="checkbox" />
+						&nbsp;&nbsp;
+						<!-- <button id="btnFormSubmit" type="button" data-toggle="modal" data-target="#exceptionsModal" class="btn btn-dark frmSubmit">COMPLETE BATCH</button> -->
+						<button id="btnFormSubmit" type="button" class="btn btn-primary frmSubmit">COMPLETE</button>
+						<br /><br />
+						<span class="font-weight-bold">Refill &nbsp;</span><input id="cbRefill" name="cbRefill" disabled
+							type="checkbox" />
+							&nbsp;&nbsp;
+					     <span class="font-weight-bold">Stock &nbsp;</span><input id="cbStock" name="cbStock" disabled
+							type="checkbox" />
+						<br /><br />
+						<span class="font-weight-bold">Scan Box Size </span><input id="txtBox" name="txtBox" type="text"
+							disabled="disabled" class="mr-3" />
+						<span class="font-weight-bold">Select Box Size </span>
+						<select id="ddBox" name="ddBox" disabled>
+							<option value="0"></option>
+							<option value="9x7x2.5">9x7x2.5</option>
+							<option value="9x7x5">9x7x5</option>
+							<option value="9x7x7.5">9x7x7.5</option>
+							<option value="10.5x8.5x7.375">10.5x8.5x7.375</option>
+							<option value="12x10x7.75">12x10x7.75</option>
+							<option value="16x11x10">16x11x10</option>
+							<option value="18x12x9">18x12x9</option>
+							<option value="18x12x12">18x12x12</option>
+							<option value="18x18x12">18x18x12</option>
+							<option value="20x16x16">20x16x16</option>
+						</select>
+						<br /><br />
+						<span class="font-weight-bold">Special Info</span>
+						<input id="txtCustom" name="txtCustom" type="text" disabled="disabled" class="" />
+						<br />
+						<span class="font-weight-bold">Shipping Code: </span>
+						{% if batch != None and errors == None %}
+						<span class="font-weight-bold" id="shippingCode">{{batch['ship']}}</span>
+						{% endif %}
+					</div>
+				</div>
 			</div>
 		</div>
-		<br />
-		<div class="row" align="right">
-			<div class="col-12">
-				<span class="font-weight-bold">Scan Box Size </span><input id="txtBox" name="txtBox" type="text"
-					disabled="disabled" class="mr-3" />
-				<span class="font-weight-bold">Select Box Size </span>
-				<select id="ddBox" name="ddBox" disabled>
-					<option value="0"></option>
-					<option value="9x7x2.5">9x7x2.5</option>
-					<option value="9x7x5">9x7x5</option>
-					<option value="9x7x7.5">9x7x7.5</option>
-					<option value="10.5x8.5x7.375">10.5x8.5x7.375</option>
-					<option value="12x10x7.75">12x10x7.75</option>
-					<option value="16x11x10">16x11x10</option>
-					<option value="18x12x9">18x12x9</option>
-					<option value="18x12x12">18x12x12</option>
-					<option value="18x18x12">18x18x12</option>
-					<option value="20x16x16">20x16x16</option>
-				</select>
-			</div>
-		</div>
-		<br />
-		<div class="row" align="right">
-			<div class="col">
-				<button id="btnSendBox" name="btnSendBox" type="button" class="btn btn-sm btn-secondary mr-2"
-					disabled="disabled">
-					SEND BOX</button>
-				<span class="font-weight-bold">Multiple Boxes</span>
-				<input id="cbMulti" name="cbMulti" type="checkbox" class="mr-5" />
-
-				<span class="font-weight-bold">Special Info</span>
-				<input id="txtCustom" name="txtCustom" type="text" disabled="disabled" class="" />
-				<br />
-				<span class="font-weight-bold">Shipping Code: </span>
-
-				{% if batch != None and errors == None %}
-				<span class="font-weight-bold" id="shippingCode">{{batch['ship']}}</span>
-			</div>
-		</div>
-		{% endif %}
 		<br />
 		<!--Table for all facility items HDA-2019-09-24 -->
 		<div class="row">
@@ -187,23 +164,24 @@
 			<input type="hidden" id="batch_complete_code" name="batch_complete_code" />
 			{% for kop, rx in batch['KOP'].items() %}
 			<!-- <div class="card" id="details" style="display: none;"> -->
-			<div class="card" id="details">
+			<div class="card" id="details" >
 				<div class="card-header" id="headingOne">
 					<h4 class="mb-0">
 						<button class="btn btn-link"
-							style="text-decoration: none !important;font-weight: bold; color:#254878" type="button"
-							data-toggle="collapse" data-target="#collapse_{{kop}}" aria-expanded="true"
-							aria-controls="collapseOne">
+							style="text-decoration: none !important;font-weight: bold; color:#254878"
+							type="button" data-toggle="collapse" data-target="#collapse_{{kop}}"
+							aria-expanded="true" aria-controls="collapseOne">
 							{{ kop }} &nbsp;&nbsp; TOTAL PATIENTS: {{rx['patTotal']}} &nbsp; RX COUNT:
 							{{rx['rxTotal']}}
 						</button>
-						<span style="position:relative;float:right;vertical-align:middle;"><input type="checkbox"
-								id="{{kop}}_toggle" name="{{kop}}_toggle" checked="true"
+						<span style="position:relative;float:right;vertical-align:middle;"><input
+								type="checkbox" id="{{kop}}_toggle" name="{{kop}}_toggle" checked="true"
 								onclick="selectAll('{{kop}}');"></span>
 					</h4>
 
 				</div>
-				<div id="collapse_{{kop}}" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+				<div id="collapse_{{kop}}" class="collapse" aria-labelledby="headingOne"
+					data-parent="#accordion">
 					<div class="card-body">
 						<table class="table table-striped">
 							<thead class="thead">
@@ -225,8 +203,8 @@
 									</th>
 									<td>
 										{{v['drg_name']}} - {{v['drg_strength']}}
-										<input type="hidden" value="{{v['drg_name']}}" id="{{ v['id'] }}_drgname"
-											name="{{ v['id'] }}_drgname" />
+										<input type="hidden" value="{{v['drg_name']}}"
+											id="{{ v['id'] }}_drgname" name="{{ v['id'] }}_drgname" />
 										<input type="hidden" value="{{v['drg_strength']}}"
 											id="{{ v['id'] }}_drgstrength" name="{{ v['id'] }}_drgstrength" />
 									</td>
@@ -238,7 +216,8 @@
 									<td>
 										<input class="{{kop}}_check" type="checkbox" checked="true"
 											id="{{ v['id'] }}_present" id="{{ v['id'] }}_present" />
-										<input type="hidden" id="{{v['id']}}_exception" name="{{v['id']}}_exception" />
+										<input type="hidden" id="{{v['id']}}_exception"
+											name="{{v['id']}}_exception" />
 										<input type="hidden" id="exception" name="exception"
 											value="{{ v['exception'] }}" />
 									</td>
@@ -359,14 +338,14 @@
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title" id="mTTitle">Expensive Batch Order </h5>
+					<h5 class="modal-title">Expensive Batch Order </h5>
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
 				<div class="modal-body">
 					<p>The current batch has a total cost of ${{ bat_total }} <br />
-						<span id="mTMsg"> Please add insurance to this shipment</span>
+						Please add insurance to this shipment
 					</p>
 				</div>
 				<div class="modal-footer">
@@ -442,18 +421,13 @@
 
 		let cbPrint = document.querySelector("input[name=cbPrint ]");
 		let cbRefill = document.querySelector("input[name=cbRefill ]");
-		let cbMulti = document.querySelector("input[name=cbMulti ]");
 		let cbStock = document.querySelector("input[name=cbStock ]");
 		let txtBox = document.getElementById('txtBox');
 		let txtCustom = document.getElementById('txtCustom');
-		let btnSendBox = document.getElementById('btnSendBox');
-		let btnFormSubmit = document.getElementById('btnFormSubmit');
 		let sel_box = document.getElementById('ddBox');
 		let shipCode = document.getElementById('ship');
 		let shipOrg = document.getElementById('shipOrg');
 		let shipDisCode = document.getElementById('shippingCode');
-		let lbCount = document.getElementById('lbCount');
-		let labelCount = 0;
 
 
 		$('#btnFormSubmit').click(function () {
@@ -482,23 +456,20 @@
 			$('#submit').click();
 		});
 
-		btnSendBox.addEventListener('click', function (event) {
-			console.log("Send Box");
-			event.preventDefault();
-			if (txtBox.value.trim() == "" && sel_box.value == "0") {
-				sError.innerHTML = "A Box Size is required";
-				sErrorText.innerHTML = "Select from the drop down or scan a box size";
-				$('#errModal').modal('show');
-				return false;
-			}
-			sendLabel();
-		});
-
 		cbPrint.addEventListener('change', function () {
 			if (this.checked) {
-				enablePrintControls();
+				txtBox.disabled = false;
+				txtCustom.disabled = false;
+				sel_box.disabled = false;
+				cbRefill.disabled = false;
+				cbStock.disabled = false;
+				txtBox.focus();
 			} else {
-				disablePrintControls();
+				txtBox.disabled = true;
+				txtCustom.disabled = true;
+				sel_box.disabled = true;
+				cbRefill.disabled = true;
+				cbStock.disabled = true;
 			}
 		});
 
@@ -506,7 +477,7 @@
 			if (this.checked) {
 				shipCode.value = setShipRefill(shipOrg.value);
 				shipDisCode.innerHTML = setShipRefill(shipOrg.value);
-				cbStock.checked = false;
+				cbStock.checked= false;
 				txtCustom.value = "Regular Fill";
 			} else {
 				shipCode.value = shipOrg.value;
@@ -528,22 +499,13 @@
 			}
 		});
 
-		cbMulti.addEventListener('change', function () {
-			if (this.checked) {
-				btnFormSubmit.disabled = true;
-				btnFormSubmit.classList.toggle('btn-primary');
-				btnSendBox.disabled = false;
-				cbPrint.checked = false;
-				cbPrint.disabled = true;
-				enablePrintControls();
-			} else {
-				btnFormSubmit.disabled = false;
-				btnFormSubmit.classList.toggle('btn-primary');
-				btnSendBox.disabled = true;
-				cbPrint.disabled = false;
-				disablePrintControls();
-			}
+		/*txtBox.addEventListener('input', function (event) {
+			event.preventDefault();
 		});
+
+		txtBox.addEventListener('keydown', function (event) {
+			event.preventDefault();
+		});*/
 
 		txtBox.addEventListener('keydown', function (evt) {
 			if (evt.which === 13) {
@@ -552,77 +514,6 @@
 				return false;
 			}
 		});
-
-		txtCustom.addEventListener('keydown', function (evt) {
-			if (evt.which === 13) {
-				evt.preventDefault();
-				evt.stopPropagation();
-				return false;
-			}
-		});
-
-		function sendLabel() {
-			let batch_id = $('#batch_id').val();
-			let ship_id = $('#ship_id').val();
-			let facility = $('#facility').val().split("-")[0].trim();
-			let tech = $('#tech').val();
-			let bat_total = $('#bat_total').val();
-			let box_size = $('#txtBox').val().trim() == "" ? $('#ddBox :selected').text().trim() : $('#txtBox').val().trim();
-			let info = $('#txtCustom').val();
-			let ship_code = $('#ship').val();
-			let username = $('#base_username').val();
-
-			let sql = `EXEC [put_shipment] \n`
-			sql += ` @DEL_BAT_ID = ` + batch_id + ` \n`
-			sql += ` ,@SHIP_ID = '` + ship_id + `' \n`
-			sql += ` ,@FAC_CODE = '` + facility + `' \n`
-			sql += ` ,@TECH_ID = '` + tech + `' \n`
-			sql += ` ,@SHIP_VALUE = ` + bat_total + ` \n`
-			sql += ` ,@BOX_SIZE = '` + box_size + `' \n`
-			sql += ` ,@CUSTOM_TEXT = '` + info + `' \n`
-			sql += ` ,@SHIP_TYPE = '` + ship_code + `' \n`
-			sql += ` ,@SHIP_TECH = '` + username + `' \n`
-			console.log(sql);
-			// /*
-			$.ajax({
-				type: "POST",
-				url: "{{url_for('updateFx')}}",
-				dataType: 'json',
-				data: {
-					'sql': sql
-				},
-				async: false,
-				success: function (data) {
-
-				},
-				complete: function (data) {
-					console.log(data);
-					labelCount += 1;
-					let lb = labelCount == 1 ? "Label" : "Labels"
-					lbCount.innerHTML = "&nbsp; " + String(labelCount) + " " + lb + " sent &nbsp;";
-
-				}
-			});
-			// */
-
-		}
-
-		function disablePrintControls() {
-			txtBox.disabled = true;
-			txtCustom.disabled = true;
-			sel_box.disabled = true;
-			cbRefill.disabled = true;
-			cbStock.disabled = true;
-		}
-
-		function enablePrintControls() {
-			txtBox.disabled = false;
-			txtCustom.disabled = false;
-			sel_box.disabled = false;
-			cbRefill.disabled = false;
-			cbStock.disabled = false;
-			txtBox.focus();
-		}
 
 		function selectAll(kop) {
 			if ($('.' + kop + '_check:checkbox').prop('checked')) {
@@ -700,7 +591,7 @@
 							case '404':
 								$('#errorText').html(
 									"<b>Error Processing Batch(404):</b><br/>  <ul><li>This batch hasn't been processed by a Pharmacist</li><li>This batch has already been processed.</li><li>This batch was notnot found.</li></ul> <b>Please verify the BATCH-ID and try again.</b>"
-								);
+									);
 								break;
 							default:
 								$('#errorText').html("500: Unknown Server Error.");
@@ -709,27 +600,6 @@
 
 					if (parseFloat("{{ bat_total }}") > 999.99) {
 						$('#mTotal').modal('show');
-						$('#mTTitle').html('Expensive Batch Order ');
-						$('#mTMsg').html(' Please add insurance to this shipment');
-					}
-
-					if (parseFloat("{{ bat_total }}") == 0) {
-						$('#mTotal').modal('show');
-						$('#mTTitle').html('<span class="bg-danger px-3" style="color:#ffffff;">Missing Drug Cost</span>');
-						$('#mTMsg').html(' Please investigate the issue with cost');
-					}
-
-					var d = new Date();
-					var n = d.getDay();
-					let fac = $('#facility').val().split("-")[0].trim();
-					let facs = ['GL', 'GLF'];
-					//let facs = ['CK', 'GL', 'GLF'];
-
-					if ((n > 0 && n < 5) && facs.includes(fac)) {
-						console.log("M-T");
-						$('#lbUMT').html(
-							'<span class="font-weight-bold bg-danger mr-3 pull-left px-4 " style="color: #ffffff">NO FEDEX ON M-T SEND UPS EARLY AM</span>'
-						);
 					}
 				</script>
 

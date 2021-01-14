@@ -58,12 +58,12 @@
                     <th scope="col">Status</th>
                     <th scope="col">IOU Qty</th>
                     <th scope="col">IOU Fill</th>
-                    <th scope="col" colspan="3">Process IOU</th>
+                    <th scope="col" colspan="4">Process IOU</th>
                 </tr>
             </thead>
             <tbody>
                 {% for iou, v in iou_items['IOU'].items() %}
-                <tr style="background-color: #fbfbfe">
+                <tr style="background-color: #fbfbfe" id="{{ v['iou_id'] }}">
                     <td class="clickable search" colspan="3" data-toggle="collapse" data-target="#{{ v['iou_id'] }}_details" aria-expanded="true" aria-controls="{{ v['iou_id'] }}_details">
                         {{ v['facility'] }}
                         <input type="hidden" value="{{v['facility']}}" id="{{ v['iou_id'] }}_facility" name="{{ v['iou_id'] }}_facility"/>
@@ -124,6 +124,12 @@
                         name="clear_button" >Close</button>
                         <input type="hidden" value="{{v['fill_id']}}" id="{{ v['iou_id'] }}_ioufill" name="{{ v['iou_id'] }}_ioufill"/>
                         <input type="hidden" value="{{v['id']}}" id="{{ v['iou_id'] }}_id" name="{{ v['iou_id'] }}_id"/>
+                    </td>
+                    <td>
+                        <button id="{{ v['iou_id'] }}_btnClearBatch"
+                        {{ update_role }}
+                        class="btn btn-primary btn-xs btnClearBatch" type="button" value="{{ v['del_bat_id'] }}"  
+                        name="clear_batch_button" >Batch</button>
                     </td>
                     <td>
                         <button id="{{ v['iou_id'] }}_btnReprint" class="btn btn-primary btn-xs btnReprint" type="submit" value="{{ v['iou_id'] }}"  
@@ -195,6 +201,10 @@
             }
         });
 
+        $("#multiModal").on("hidden.bs.modal", function () {
+            location.reload(true);
+        });
+
       });
 
     function openDialog(id, err){
@@ -215,7 +225,7 @@
         $("#cbInval").prop("checked", false);
         $("#cbInval").removeAttr("disabled"); 
         $("#mfillVal").removeAttr("disabled"); 
-        console.log(fill_id, rem_qty);
+        //console.log(fill_id, rem_qty);
 
         $.ajax({
             type: "POST",
@@ -243,10 +253,92 @@
 
     $('.btnFormSubmit').click(function(e) {
         var id = $(this).val();
-        //$('#processModal').modal('show');
         openDialog(id, "");
         e.preventDefault();
     });
+
+    $('.btnClearBatch').click(function(e) {
+        var batch = $(this).val().trim();
+        //console.log(batch);
+        var html = "";
+        var facility = "";
+
+        var tbl  = 'tblMain';
+        $("#" + tbl +" tr:gt(0)").each(function () {
+            var this_row = $(this);
+            var iou_id = this_row.attr('id');
+            var del_bat = $.trim(this_row.find('td:eq(1)').html())
+            var full = $.trim(this_row.find('td:eq(0)').html()).split('<');
+            facility = full[0];
+            if (del_bat.startsWith(batch)) {
+                var iou_qty = Number($("#" + iou_id + "_iouqty").val());
+                var iou_comp = Number($("#" + iou_id + "_ioucomp").val());
+                var iou_close_qty =  iou_qty - iou_comp;
+                var drug = $("#" + iou_id+ "_drgdname").val();
+                var drg_strength = $("#" + iou_id+ "_drgstrength").val()
+                var user = $.trim($(".curr_user").text());
+                var seq = $("#" + iou_id + "_seq").val();
+                var trans_id = $("#" + iou_id + "_id").val();
+
+                $("#sMFac").html(facility);
+                var iou_item = '<div class="row">';
+                iou_item += "<div class='col-12' id='d_" + iou_id + "'>";
+                iou_item +=  " <input class='iou_item'  name='iou_item' type='checkbox' value='" + iou_id + "'/> ";
+                iou_item +=  drug + " " + drg_strength + "  &emsp;Qty: " + iou_close_qty ;
+                iou_item +=  " <input type='hidden' value='" + trans_id + "'  id='" + iou_id + "_transid_m'/>";
+                iou_item +=  " <input type='hidden' value='" + iou_close_qty  + "'  id='" + iou_id + "_qty_m'/>";
+                iou_item +=  " <input type='hidden' value='" + seq + "'  id='" + iou_id + "_seq_m' />";
+                iou_item +=  " <input type='hidden' value='" + batch + "'  id='" + iou_id + "_batch_m' />";
+                iou_item +=  " <input type='hidden' value='" + user + "'  id='" + iou_id + "_user_m' />";
+                iou_item += " </div></div>";
+                html += iou_item;
+                //console.log(iou_item);
+            }
+        });
+
+        $("#sMBatch").html(batch);
+        $("#dMulti").html(html);
+        $('#multiModal').modal('show');
+        e.preventDefault();
+    });
+
+    function closeChecked() {
+        $(".iou_item:checked").each(function(){
+            let iou_id= $(this).attr("value");
+            let user = $("#" + iou_id + "_user_m").val();
+            let batch = $("#" + iou_id + "_batch_m").val();
+            let seq = $("#" + iou_id + "_seq_m").val();
+            let qty = $("#" + iou_id + "_qty_m").val();
+            let trans_id = $("#" + iou_id + "_transid_m").val();
+            //console.log(iou_id + " : " + qty+ " : " + batch + " : " + seq + " : " + user + " : " + trans_id);
+            
+            $.ajax({
+                type: "POST",
+                url: "{{url_for('iou_close')}}",
+                dataType: 'json',
+                data: {
+                    'iou_id': iou_id
+                    ,'add_qty': qty
+                    ,'status': 'IC'
+                    ,'user': user
+                    ,'batch': batch
+                    ,'trans_id': trans_id
+                    ,'seq': seq
+                },
+                async: false,
+                success: function (data) { 
+                    console.log(data);
+                },
+                complete: function (data) {
+                    //location.reload();
+                }
+            });
+
+         });
+
+         console.log('complete');
+         $('#multiModal').modal('hide');
+    }
 
     $('.btnReprint').click(function(e) {
         id = $(this).val();
@@ -294,7 +386,7 @@
         e.preventDefault();
     });
 
-$('.btnUpdate').click(function(e) {
+    $('.btnUpdate').click(function(e) {
         id = $(this).val();
         console.log(id);
         $.ajax({
@@ -316,8 +408,7 @@ $('.btnUpdate').click(function(e) {
         });
         e.preventDefault();
     });
-
-    
+  
     $(document).on("click", "#btnSaveProcess", function(event){
         //alert("Clicked");
         id =  $("#mIdSubmit").val();
@@ -457,21 +548,18 @@ $('.btnUpdate').click(function(e) {
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Close IOU or add completed quantity</h5>
+                <div class="modal-title">Close IOUs Batch: <span id="sMBatch"></span></div>
+                <div  id="sMFac"></div>
             </div>
             <div class="modal-body">
+                <div id="dMulti">
 
-                <p style='color:red; font-weight:bold' id="pError">
-                </p>
-                <input type="hidden" id="mIdSubmit" />
-                <input type="hidden" id="m_filldate" />
-                <input type="hidden" id="m_batch" />
-                <input type="hidden" id="m_id" />
-                <input type="hidden" id="m_seq" />
+                </div>
             </div>
             <div class="modal-footer">
+                <p style='color:red; font-weight:bold' id="pmError"></p>
                 <span class="mr-auto" style='color:red; font-weight:bold' id="iCost"></span>
-                <button type="button" class="btn btn-primary" id="btnSaveProcess">Save changes</button>
+                <button type="button" class="btn btn-primary" id="btnSaveMulti" onclick="closeChecked()">Close checked</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
             </div>
         </div>

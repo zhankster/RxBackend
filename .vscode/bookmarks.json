@@ -1,0 +1,42 @@
+[
+	{
+		"path": "$ROOTPATH$\\templates\\iou_processing.html",
+		"bookmarks": [
+			{
+				"line": 39,
+				"column": 2,
+				"label": ""
+			},
+			{
+				"line": 66,
+				"column": 10,
+				"label": ""
+			},
+			{
+				"line": 271,
+				"column": 6,
+				"label": ""
+			}
+		]
+	},
+	{
+		"path": "$ROOTPATH$\\templates\\processing.html",
+		"bookmarks": [
+			{
+				"line": 466,
+				"column": 2,
+				"label": ""
+			}
+		]
+	},
+	{
+		"path": "$ROOTPATH$\\app.py",
+		"bookmarks": [
+			{
+				"line": 510,
+				"column": 2,
+				"label": ""
+			}
+		]
+	}
+]

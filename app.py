@@ -19,10 +19,21 @@ import urllib
 import db_ship as dbs
 
 ## GLOBALS
+username='fedex'
+password='f3dE10!@'
+
 UPS_CONNECTION_STRING='DRIVER={SQL Server};SERVER=localhost;DATABASE=UPS_Shipping;Trusted_Connection=yes'
 RX_CONNECTION_STRING='DRIVER={SQL Server};SERVER=localhost;DATABASE=RXBackend;Trusted_Connection=yes'
 CIPS_CONNECTION_STRING='DRIVER={SQL Server};SERVER=localhost;DATABASE=CIPS;Trusted_Connection=yes'
+FX_CONNECTION_STRING = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=localhost;DATABASE=FedExHistoryManager;Trusted_Connection=yes'
+# FX_CONNECTION_STRING = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=IHS-Optifreight;DATABASE=FedExHistoryManager;Trusted_Connection=yes'
+# FX_CONNECTION_STRING = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=IHS-Optifreight;DATABASE=FedExHistoryManager;UID='+ username + ';PWD=' + password
 RXBACKEND_VERSION='0.1'
+
+# Shipping Codes
+ship_optifreight = ['G1','G3','N1','N3','NS1','NS3','F3','FR']
+ship_heritage = ['G2','G4','N2','N4','NS2','NS4','F3F','FRF']
+
 
 ## Init APP
 app = Flask(__name__)
@@ -373,6 +384,9 @@ def processing():
     fac_status = 'NA'
     bg = '#FFFFFF'
     bat_total = 0
+    ship_id = "123"
+    no_sat_del = 3
+    day = datetime.today().weekday()
 
     if request.method == "GET" and batch_id != None:
         if batch_id == "":
@@ -393,6 +407,10 @@ def processing():
                     objects_list['facility'] = row.FACILITY
                     objects_list['tech'] = row.TECH
                     objects_list['ship'] = row.SHIP
+                    objects_list['no_sat_del '] = row.NO_SAT_DEL
+                    no_sat_del = row.NO_SAT_DEL
+                    if day != 4 and no_sat_del == True:  #day != 4
+                        no_sat_del = False
                     # Added Facility code HDA-2019-09-24
                     fac_dcode = row.FAC_DCODE
                 if 'KOP' not in objects_list:
@@ -408,11 +426,12 @@ def processing():
                 objects_list['KOP'][row.FIL_KOP]['rxTotal'] = objects_list['KOP'][row.FIL_KOP]['rxTotal'] + 1
                 objects_list['KOP'][row.FIL_KOP][row.ID] = {'exception': row.EXCEPTION, 'name': row.NAME, 'id': row.ID, 'fil_id': row.FIL_ID, 'pat_id': row.PAT_ID, 'qty': int(
                     row.QTY), 'drg_strength': row.DRG_STRENGTH, 'drg_name': row.DRG_DNAME}
+            print("No Sat:" + str(no_sat_del) )
         else:
             error = 404
 
         # Get Facility data HDA-2019-09-24
-        print(fac_dcode)
+        # print(fac_dcode)
         conn1 = pyodbc.connect(RX_CONNECTION_STRING)
         cur1 = conn1.cursor()
         cur1.execute("""EXEC dbo.facility_ship_status ?""",fac_dcode.replace(' ', ''))
@@ -424,7 +443,7 @@ def processing():
             fac_status = 'complete'
         elif fac_status == "":
             fac_status = 'reconciled'
-        print(fac_status)
+        # print(fac_status)
         cur1.execute("""EXEC dbo.todays_all_rx_by_facility ?""",fac_dcode.replace(' ', ''))
         rows_facility = cur1.fetchall()
 
@@ -489,11 +508,59 @@ def processing():
                                     (request.form['batch_id'], id))
                         conn.commit()
         else:
+            if 'cbPrint' in request.form :
+                p_batch = ''
+                print(session)
+                try: 
+                    acct = 'SAT'
+                    ship_code = request.form['ship']
+                    day = datetime.today().weekday()
+                    print(str(day) + ': ' + ship_code)
+                    if day == 5:  #5
+                        conn1 = pyodbc.connect(RX_CONNECTION_STRING)
+                        cur1 = conn1.cursor()
+                        cur1.execute("SELECT ACCT FROM SHIP_CODES WHERE CODE = '" + ship_code + "'" )
+                        acct = cur1.fetchone()[0] 
+                        if acct  == 'HT':
+                            acct = 'SATF'
+                        else:
+                            acct = 'SAT'
+                        ship_code = acct                                   
+                    print(ship_code)
+                    
+                    p_batch = request.form['batch_id']
+
+                    conn2 = pyodbc.connect(FX_CONNECTION_STRING)
+                    sql2 = "{CALL dbo.put_shipment (?, ?, ?, ?, ?, ?, ?, ?, ?)}"
+                    cur2 = conn2.cursor()
+                    
+                    box_size = request.form['txtBox'].strip()
+                    if  request.form['txtBox'].strip() == "":
+                        box_size = request.form['ddBox']
+                    params = (int(request.form['batch_id'])
+                    , request.form['ship_id']
+                    ,request.form['facility'].split("-")[0].strip()
+                    , request.form['tech'] 
+                    ,Decimal(request.form['bat_total'])
+                    ,box_size
+                    ,request.form['txtCustom']
+                    ,ship_code
+                    ,session['user_id'].strip())
+                    print(params)
+                    
+                    cur2.execute(sql2, params)
+                    conn2.commit()
+                except:
+                    return '''Error on Print transaction for batch ''' + p_batch + '''<br /><br />
+                        <strong><a href="/processing">Go Back to Processing</a><strong>'''
+            ###
+            # Complete batch print("No Complete")
             sql = "{CALL dbo.put_completed_batch (?, ?, ?, ?, ?, ?)}"
             params = (request.form['batch_id'], request.form['facility'].split(
                 "-")[0].strip(), request.form['ship'], request.form['tech'], request.form['batch_complete_code'], session['initials'])
             cur.execute(sql, params)
             conn.commit()
+            print("Submit to Complete")
 
             objects_list = []
             for key, value in request.form.items():
@@ -523,7 +590,9 @@ def processing():
     if batch_id != None and float(str(batch_id)) > 9000000000.00:
         error = None
 
-    return render_template('processing.html', errors=error, batch_id=batch_id, batch=objects_list, batch_codes=batch_codes, exception_codes=exception_codes, facility_items=facility_items, bg=bg, bat_total = bat_total, fac_status = fac_status )
+    return render_template('processing.html', errors=error, batch_id=batch_id, batch=objects_list
+    , batch_codes=batch_codes, exception_codes=exception_codes
+    , facility_items=facility_items, bg=bg, bat_total = bat_total, fac_status = fac_status, no_sat_del = no_sat_del)
 
 @app.route("/iou", methods=["GET", "POST"])
 @login_required
@@ -710,6 +779,33 @@ def iou_processing():
         
 
     return render_template('iou_processing.html', iou_items=io, update_role = write_role)
+
+@app.route("/iou_close", methods=["POST"])
+def iou_close():
+    conn = pyodbc.connect(RX_CONNECTION_STRING)
+    cur = conn.cursor()
+    sql = "{CALL dbo.close_iou_request (?, ?, ?,?)}"
+    iou_id = request.form['iou_id']
+    iou_qty = request.form['add_qty']
+    user = request.form['user']
+    batch = request.form['batch']
+    trans_id = request.form['trans_id']
+    seq = request.form['seq']
+    status = request.form['status']
+    params = (int(iou_id), Decimal(iou_qty),user, status)
+    print("P1: "  + str(params))
+    cur.execute(sql, params)
+    conn.commit()
+
+    sql = "{CALL dbo.put_iou_for_ship (?, ?, ?, ?, ?)}"
+    print('Add to ship', int(trans_id), user, Decimal(iou_qty),int(seq), int(batch))
+    params = (int(trans_id), user, Decimal(iou_qty),int(seq), int(batch))
+    print("P2: "  + str(params))
+    cur.execute(sql, params)
+    conn.commit()
+    
+    return 'success';
+        
 
 @app.route("/iou_reprint", methods=["POST"])
 @login_required
@@ -1298,6 +1394,12 @@ def admin_kickback():
             
     return render_template('admin/kickback.html')
 
+@app.route('/admin/id', methods=["GET", "POST"])
+@login_required
+def admin_id():
+            
+    return render_template('admin/id.html')
+
 @app.route('/admin/batches/<path:batch_date>', methods=["GET"])
 @login_required
 def admin_batches_by_date(batch_date):
@@ -1377,9 +1479,9 @@ def admin_iou_notify():
         
     if request.method == 'POST':
         if request.form['p_type'] == 'facility':
-            params  = (( request.form['code'], request.form['group']   ))
+            params  = (( request.form['code'], request.form['group'], int(request.form['no_sat'])   ))
             if request.form['op-code'] == 'insert':
-                sql =  "{CALL dbo.put_fac_alt_notify (?, ?)}"
+                sql =  "{CALL dbo.put_fac_alt_notify (?, ?, ?)}"
                 cur.execute(sql, params)
                 conn.commit()
             else:
@@ -1404,6 +1506,17 @@ def updateRx():
     sql = request.form['sql']
     print(sql)
     conn = pyodbc.connect(RX_CONNECTION_STRING)
+    cur = conn.cursor()
+    cur.execute(sql)
+    conn.commit()
+    
+    return 'items'
+
+@app.route('/updateFx', methods=['POST'])
+def updateFx():
+    sql = request.form['sql']
+    print(sql)
+    conn = pyodbc.connect(FX_CONNECTION_STRING)
     cur = conn.cursor()
     cur.execute(sql)
     conn.commit()
@@ -1457,6 +1570,17 @@ def login():
 def logout():	
     logout_user()
     return redirect(url_for('login'))
+
+# @app.errorhandler(500)
+# def internal_error(exception):
+#     app.logger.exception(exception)
+#     file_handler = RotatingFileHandler('C:\inetpub\wwwroot\logs.log', 'a', 1 * 1024 * 1024, 10)
+#     file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+#     app.logger.setLevel(logging.INFO)
+#     file_handler.setLevel(logging.INFO)
+#     app.logger.addHandler(file_handler)
+#     app.logger.info('microblog startup')
+#     return render_template('500.html'), 500 
 
 if __name__ == "__main__":
     app.run(debug=True)

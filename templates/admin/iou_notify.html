@@ -131,22 +131,28 @@
       <div class="modal-body">
         <p id="pName"></p>
         <div class="form-group row">
-          <label for="txtFac" class="col-sm-3 col-form-label">Facility Code</label>
-          <div class="col-sm-9">
+          <label for="txtFac" class="col-sm-4 col-form-label">Facility Code</label>
+          <div class="col-sm-8">
             <input id="txtFac" type="text"  />
             <input id="txtFacVal" type="hidden"  />
           </div>
         </div>
 
       <div class="form-group row">
-        <label for="selMNG" class="col-sm-3 col-form-label">MM Group</label>
-        <div class="col-sm-9">
+        <label for="selMNG" class="col-sm-4 col-form-label">MM Group</label>
+        <div class="col-sm-8">
           <select class="notify" id="selMNG" name="selMNG" >
             <option value=""></option>
             {% for c in mng %}
             <option value="{{ c['codeG'] }}">{{ c['codeG'] }}</option>
             {% endfor %}
         </select>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="cbNoSat" class="col-sm-5 col-form-label">No Saturday Delivery</label>
+        <div class="col-sm-7">
+          <span id="sNoSat"><input type="checkbox" id="cbNoSat" name="cbNoSat"  /></span>
         </div>
       </div>
       <p id="errMsg" style="font-weight: bold; color:red"></p>
@@ -194,6 +200,7 @@
       <input type="hidden" id="op-code" name="op-code"/>
       </div>
       <div class="modal-footer">
+        <span class="pull-left bg-success text-light px-2" id="sSave"></span>
         <button type="button" onclick="save_addresses()" class="btn btn-primary">Save</button>
         <button type="button" class="btn btn-light" onclick="checkUpdate()" >Cancel</button>
         <div>
@@ -279,7 +286,7 @@ function edit_fac(code) {
         $('#selMNG').val($("#" + code + "_group").val());
         $('#errMsg').val("");
         $('#mtCode').html("Edit  Facililty");
-
+        $('#sSave').html('');
     }
 	
 function delete_code(code, desc, cat_code,category) {		
@@ -303,6 +310,8 @@ function resetForm(){
         $('#cNotify').prop('checked', true);
         $('#errMsg').html("");
         $('#mtCode').html("Add Facility");
+        $("#cbNoSat").prop('checked', false);
+        $('#sSave').html("");
     }
 
 function validateForm(){
@@ -310,6 +319,7 @@ function validateForm(){
         let opcode = $('#op-code').val(); 
         let code =  $('#txtFac').val();   
         let group = $('#selMNG').val();
+        let no_sat = $('#cbNoSat').prop('checked')? '1': '0';
         let notify = 1;
         let email = "";
         console.log(opcode);
@@ -339,6 +349,7 @@ function validateForm(){
               data: {
                   'code': code.trim()
                   ,'group' : group.trim()
+                  ,'no_sat' : no_sat
                   ,'op-code': opcode
                   ,'p_type' : 'facility'
               },
@@ -356,13 +367,15 @@ function getAddresses(fac_code){
   let html = "";
   $.ajax({
     data: {
-        sql: `SELECT ID
-            ,ADDRESS
-            ,ARX
-            ,IOU
-            ,Billing
-            FROM FAC_EMAIL
-            WHERE FAC_CODE= '` + fac_code + `'`        
+        sql: `SELECT E.ID
+            ,E.ADDRESS
+            ,E.ARX
+            ,E.IOU
+            ,E.Billing
+            ,ISNULL(A.NO_SAT_DEL, 0) NO_SAT_DEL
+            FROM FAC_EMAIL E
+            LEFT JOIN FAC_ALT A ON E.FAC_CODE = A.DCODE
+            WHERE E.FAC_CODE= '` + fac_code + `'`        
     },
     type: 'POST',
     url: '/getAddresses',
@@ -374,12 +387,15 @@ function getAddresses(fac_code){
         let address= item.ADDRESS;
         let arx = item.ARX== 1? 'checked': '';
         let iou= item.IOU== 1? 'checked': '';
-        let billing = item.Billing== 1? 'checked':'';
+        let billing = item.Billing== 1? 'checked': '';
+        let no_sat = item.NO_SAT_DEL== 1 ? true : false;
         console.log("ARX: " + arx + "," + id);
         html += '<tr id="' + id + '"><td rel="' + address + '"><input type="text" id="' + id +'_address"  class="address notify" value="' + address + '"/></td>';
         html += '<td rel="' + arx + '" id="'+ id +'_arx_td" ><input type="checkbox" id="' + id +'_arx"  ' + arx + ' class="arx notify" /></td>';
         html += '<td rel="' + iou+ '" id="'+ id +'_iou_td" ><input type="checkbox" id="' + id +'_iou"  ' + iou + '  class="iou notify"/></td>';
         html += '<td rel="' + billing + '" id="'+ id +'_billing_td" ><input type="checkbox" id="' + id +'_billing"  ' + billing + '  class="billing  notify"/></td>';
+
+        $("#cbNoSat").prop('checked', no_sat);
     });
     $("#tbAddress").html(html);
 });
@@ -442,8 +458,10 @@ function save_addresses(){
 
 function saveGroup(fac_code){
   let group = $('#selMNG').val();
+  let no_sat = $('#cbNoSat').prop('checked')? '1': '0';
   let sql = `UPDATE FAC_ALT `;
         sql += ` SET MNG = '` + group  + `'`;
+        sql += ` , NO_SAT_DEL = ` + no_sat  + ` `;
         sql += ` WHERE DCODE = '`  + fac_code + `'`;
   console.log(sql);
 
@@ -456,15 +474,15 @@ function saveGroup(fac_code){
     },
     async: false,
     success: function (data) {
-
     },
     complete: function (data) {
-     
+      $("#sSave").html("Save Complete");
   }
 });
 $("#" + fac_code + "_tdGroup").text(group);
 $("#" + fac_code + "_group").val(group);
 }
+
 
 function addAddress(){
     let address = $('#txtAddAddress').val().trim();

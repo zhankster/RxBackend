@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block body %}
+<script type="text/javascript">
+	var nav = document.getElementById("navAdmin");
+	nav.className += " active";
+	nav.style.fontWeight = "bold";
+</script>
+<br/>
+<br/>
+<div class="container">
+  <div class="row">
+    <div class="col">
+    	<h1 style="color:#254878;">Set Ship ID:</h1>
+    	<br/>
+    </div>
+  </div>
+  <!-- BATCH INPUT & METADATA -->
+  <div class="row">
+	<div class="col">
+		Current ID: <span id="current"></span>
+		<table class="table" >
+			<thead class="thead-dark">
+				<tr>
+					<th scope="col">Enter Shipping application ID</th>
+					
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td scope="row"><input type="textbox" autofocus="autofocus" name="ship-id" id="ship-id" required="true"></form>
+						<button id="btnSet" name="btnSet" class="btn btn-primary ml-2">Set</button></td>
+					<td></td>			
+				</tr>
+			</tbody>
+		</table>				
+	</div>
+  </div>
+</div>
+<script type="text/javascript">
+	console.log(JSON.stringify(localStorage));
+	let shipID = localStorage.getItem("ship-id");
+	let current = document.getElementById("current");
+	current.innerHTML = shipID;	
+
+	document.getElementById("btnSet").addEventListener("click", 
+			function() {
+			let id = document.getElementById("ship-id").value;
+			localStorage.setItem("ship-id", id);
+			current.innerHTML = localStorage.getItem("ship-id") ;
+	});
+</script>
+{% endblock %}
